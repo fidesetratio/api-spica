@@ -1,0 +1,100 @@
+server:
+  port: 9090
+
+# Metrics configuration for Spring Actuator and also prometheus, it's the same for all profiles
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health, metrics, prometheus
+  metrics:
+    export:
+      atlas:
+        enabled: false
+# Remember that the name of the application has to be the same name of the registered service in the service discovery tool
+spring:
+  profiles:
+    active: "uatprod"
+  application:
+    name: api-spica
+
+---
+spring:
+  profiles: dev
+  logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.app: DEBUG
+  com.app.mapper.dao: DEBUG
+  datasource:
+    driverClassName: oracle.jdbc.driver.OracleDriver
+    #url: jdbc:oracle:thin:@128.21.30.20:1522:ajsdb #ajsmuat
+    url: jdbc:oracle:thin:@128.21.23.31:1521:ajsdb #ajsdbtest
+    username: EKA
+    password: eka
+  urlDukcapil: http://128.21.33.27:8989/dukcapiltest/nikdata/nik
+  tokenDukcapil: Bearer 32b971fa-2334-4a49-b2cf-533ca7ea8588
+  kafka:
+    bootstrapAddress: 128.21.24.62:9092
+    groupId: etl
+eureka:
+  instance:
+    # Leave prefer ip address to allow the gateway inside the kubernetes cluster to find this service by it's pod ip
+    preferIpAddress: true
+    # The hostname of the service, to register the pod and turn it easier for the gateway to find it
+    # For deploying eureka clients in Kubernetes you need to set the hostname as the same name of the service
+    hostname: api-spica
+  client:
+    enabled: false
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8080/eureka
+
+---
+spring:
+  profiles: uatprod
+  logging:
+   pattern:
+   console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}]){yellow} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+  datasource:
+    driverClassName: oracle.jdbc.driver.OracleDriver
+    #url: jdbc:oracle:thin:@128.21.30.20:1522:ajsdb #ajsmuat
+    url: jdbc:oracle:thin:@128.21.23.31:1521:ajsdb #ajsdbtest
+    username: EKA
+    password: eka
+  urlDukcapil: http://128.21.33.27:8989/dukcapiltest/nikdata/nik
+  tokenDukcapil: Bearer 32b971fa-2334-4a49-b2cf-533ca7ea8588
+  kafka:
+    bootstrapAddress: 128.21.24.62:9092
+    groupId: etl
+zipkin:
+   baseUrl: http://notyfyd-zipkin.default.svc.cluster.local:9411
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: api-spica
+  client:
+    enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://eureka-0.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-1.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-2.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-3.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-4.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-5.eureka.cosmos.svc.cluster.local:8080/eureka
+logging:
+  level:
+    org.springframework: ERROR
+
+---
+spring:
+  profiles: prod
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: api-spica
+  client:
+    enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://eureka-0.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-1.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-2.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-3.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-4.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-5.eureka.cosmos.svc.cluster.local:8080/eureka

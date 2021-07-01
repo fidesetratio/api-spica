@@ -1,0 +1,382 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.app.mapper.dao.SpicaDAO">
+
+	<insert id="insertLstSpicaForm" parameterType="com.app.model.LstSpicaForm" useGeneratedKeys="true" keyColumn="LSPC_FORM_ID" keyProperty="lspc_form_id">
+	INSERT INTO EKA.LST_SPICA_FORM
+		(LSPC_FORM_TYPE, LSPC_FORM_DESCRIPTION, LSPC_FORM_SOURCE, LSPC_FORM_PRIMARY_ATTRIBUTE, LSPC_FORM_CREATED_DATE, LSPC_FORM_CREATED_BY, LSPC_FORM_FLAG_ACTIVE)
+		VALUES
+		(
+		#{lspc_form_type, jdbcType=VARCHAR},
+		#{lspc_form_description, jdbcType=VARCHAR},
+		#{lspc_form_source, jdbcType=VARCHAR},
+		#{lspc_form_primary_attribute, jdbcType=VARCHAR},
+		SYSDATE,
+		#{lspc_form_created_by, jdbcType=INTEGER},
+		1
+		)
+	</insert>
+	
+	<insert id="insertFormField" parameterType="java.util.HashMap">
+	INSERT INTO EKA.LST_SPICA_FIELD
+		(LSPC_FORM_ID, LSPC_FIELD_NAME, LSPC_FIELD_TYPE, LSPC_FIELD_NULLABLE, LSPC_FIELD_CREATED_DATE, LSPC_FIELD_CREATED_BY, LSPC_FIELD_FLAG_ACTIVE)
+		SELECT #{lspc_form_id, jdbcType=INTEGER}, A.COLUMN_NAME, A.DATA_TYPE, A.NULLABLE, SYSDATE, #{lspc_field_created_by, jdbcType=INTEGER}, 1
+		FROM ALL_TAB_COLS A
+			WHERE OWNER = 'EKA'
+			AND A.TABLE_NAME = #{lspc_form_source, jdbcType=VARCHAR}
+			AND A.COLUMN_ID IS NOT NULL
+			AND NOT EXISTS(SELECT *
+			FROM EKA.LST_SPICA_FIELD B
+			WHERE B.LSPC_FIELD_NAME = A.COLUMN_NAME
+			AND LSPC_FORM_ID = #{lspc_form_id, jdbcType=INTEGER}
+			)
+			ORDER BY COLUMN_ID
+	</insert>
+	
+	<insert id="insertLstSpicaVariable" parameterType="com.app.model.LstSpicaVariable">
+	INSERT INTO EKA.LST_SPICA_VARIABLE
+		(LSPC_FORM_ID, LSPC_VARIABLE_NAME, LSPC_VARIABLE_TYPE, LSPC_VARIABLE_EXPRESSION, LSPC_VARIABLE_DESCRIPTION, LSPC_VARIABLE_CREATED_DATE, LSPC_VARIABLE_CREATED_BY, LSPC_VARIABLE_FLAG_ACTIVE)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{lspc_variable_name, jdbcType=VARCHAR},
+		#{lspc_variable_type, jdbcType=VARCHAR},
+		#{lspc_variable_expression, jdbcType=VARCHAR},
+		#{lspc_variable_description, jdbcType=VARCHAR},
+		SYSDATE,
+		#{lspc_variable_created_by, jdbcType=INTEGER},
+		1
+		)
+	</insert>
+	
+	<insert id="insertLstSpicaRule" parameterType="com.app.model.LstSpicaRule">
+	INSERT INTO EKA.LST_SPICA_RULE
+		(LSPC_FORM_ID, LSPC_RULE_NAME, LSPC_RULE_DESCRIPTION, LSPC_RULE_EXPRESSION, LSPC_RULE_ERROR_MSG, LSPC_RULE_CREATED_DATE, LSPC_RULE_CREATED_BY, LSPC_RULE_FLAG_ACTIVE, LSPC_RULE_PREREQUISITES, LSPC_RULE_CATEGORY_ID)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{lspc_rule_name, jdbcType=VARCHAR},
+		#{lspc_rule_description, jdbcType=VARCHAR},
+		#{lspc_rule_expression, jdbcType=VARCHAR},
+		#{lspc_rule_error_msg, jdbcType=VARCHAR},
+		SYSDATE,
+		#{lspc_rule_created_by, jdbcType=INTEGER},
+		1,
+		#{lspc_rule_prerequisites, jdbcType=VARCHAR},
+		#{lspc_rule_category_id, jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<insert id="insertLstSpicaCondition" parameterType="com.app.model.LstSpicaCondition">
+	INSERT INTO EKA.LST_SPICA_CONDITION
+		(LSPC_FORM_ID, LSPC_RULE_NAME, LSPC_CONDITION_NAME, LSPC_CONDITION_EXPRESSION, LSPC_CONDITION_DESCRIPTION, LSPC_CONDITION_CREATED_DATE, LSPC_CONDITION_CREATED_BY, LSPC_CONDITION_FLAG_ACTIVE)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{lspc_rule_name, jdbcType=VARCHAR},
+		#{lspc_condition_name, jdbcType=VARCHAR},
+		#{lspc_condition_expression, jdbcType=VARCHAR},
+		#{lspc_condition_description, jdbcType=VARCHAR},
+		SYSDATE,
+		#{lspc_condition_created_by, jdbcType=INTEGER},
+		1
+		)
+	</insert>
+	
+	<insert id="insertLstSpicaList" parameterType="com.app.model.LstSpicaList">
+	INSERT INTO EKA.LST_SPICA_LIST
+		(LSPC_LIST_NAME, LSPC_LIST_DESCRIPTION, LSPC_LIST_SOURCE, LSPC_LIST_FIELD_NAME, LSPC_LIST_FIELD_TYPE, LSPC_LIST_CREATED_DATE, LSPC_LIST_CREATED_BY, LSPC_LIST_FLAG_ACTIVE)
+		VALUES
+		(
+		#{lspc_list_name, jdbcType=VARCHAR},
+		#{lspc_list_description, jdbcType=VARCHAR},
+		#{lspc_list_source, jdbcType=VARCHAR},
+		#{lspc_list_field_name, jdbcType=VARCHAR},
+		#{lspc_list_field_type, jdbcType=VARCHAR},
+		SYSDATE,
+		#{lspc_list_created_by, jdbcType=INTEGER},
+		1
+		)
+	</insert>
+	
+	<insert id="insertMstSpicaFormHistory" parameterType="com.app.model.MstSpicaFormHistory">
+	INSERT INTO EKA.MST_SPICA_FORM_HISTORY
+		(LSPC_FORM_ID, MSPC_FORM_HIST_PRIMARY_ATT, MSPC_FORM_HIST_TIME_STARTED, MSPC_FORM_HIST_TIME_FINISHED, MSPC_FORM_HIST_CREATED_DATE, MSPC_FORM_HIST_CREATED_BY, MSPC_FORM_HIST_RESULT, MSPC_FORM_HIST_PROCESS_NUMBER)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{mspc_form_hist_primary_att, jdbcType=VARCHAR},
+		#{mspc_form_hist_time_started, jdbcType=DATE},
+		#{mspc_form_hist_time_finished, jdbcType=DATE},
+		SYSDATE,
+		#{mspc_form_hist_created_by, jdbcType=INTEGER},
+		#{mspc_form_hist_result, jdbcType=VARCHAR},
+		#{mspc_form_hist_process_number, jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<insert id="insertMstSpicaFieldHistory" parameterType="com.app.model.MstSpicaFieldHistory">
+	INSERT INTO EKA.MST_SPICA_FIELD_HISTORY
+		(LSPC_FORM_ID, MSPC_FORM_HIST_PRIMARY_ATT, LSPC_FIELD_NAME, MSPC_FIELD_HIST_VALUE, MSPC_FIELD_HIST_CREATED_DATE, MSPC_FIELD_HIST_CREATED_BY, MSPC_FORM_HIST_PROCESS_NUMBER)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{mspc_form_hist_primary_att, jdbcType=VARCHAR},
+		#{lspc_field_name, jdbcType=VARCHAR},
+		#{mspc_field_hist_value, jdbcType=VARCHAR},
+		SYSDATE,
+		#{mspc_field_hist_created_by, jdbcType=INTEGER},
+		#{mspc_form_hist_process_number, jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<insert id="insertMstSpicaVariableHistory" parameterType="com.app.model.MstSpicaVariableHistory">
+	INSERT INTO EKA.MST_SPICA_VARIABLE_HISTORY
+		(LSPC_FORM_ID, MSPC_FORM_HIST_PRIMARY_ATT, LSPC_VARIABLE_NAME, LSPC_VARIABLE_EXPRESSION, MSPC_VARIABLE_HIST_VALUE, MSPC_VARIABLE_HIST_CREATED, MSPC_VARIABLE_HIST_CREATED_BY, MSPC_FORM_HIST_PROCESS_NUMBER)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{mspc_form_hist_primary_att, jdbcType=VARCHAR},
+		#{lspc_variable_name, jdbcType=VARCHAR},
+		#{lspc_variable_expression, jdbcType=VARCHAR},
+		#{mspc_variable_hist_value, jdbcType=VARCHAR},
+		SYSDATE,
+		#{mspc_variable_hist_created_by, jdbcType=INTEGER},
+		#{mspc_form_hist_process_number, jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<insert id="insertMstSpicaRuleHistory" parameterType="com.app.model.MstSpicaRuleHistory">
+	INSERT INTO EKA.MST_SPICA_RULE_HISTORY
+		(LSPC_FORM_ID, MSPC_FORM_HIST_PRIMARY_ATT, LSPC_RULE_NAME, LSPC_RULE_EXPRESSION, MSPC_RULE_HIST_RESULT, MSPC_RULE_HIST_CREATED_DATE, MSPC_RULE_HIST_CREATED_BY, LSPC_RULE_CATEGORY_ID, MSPC_FORM_HIST_PROCESS_NUMBER)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{mspc_form_hist_primary_att, jdbcType=VARCHAR},
+		#{lspc_rule_name, jdbcType=VARCHAR},
+		#{lspc_rule_expression, jdbcType=VARCHAR},
+		#{mspc_rule_hist_result, jdbcType=VARCHAR},
+		SYSDATE,
+		#{mspc_rule_hist_created_by, jdbcType=INTEGER},
+		#{lspc_rule_category_id, jdbcType=INTEGER},
+		#{mspc_form_hist_process_number, jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<insert id="insertMstSpicaConditionHistory" parameterType="com.app.model.MstSpicaConditionHistory">
+	INSERT INTO EKA.MST_SPICA_CONDITION_HISTORY
+		(LSPC_FORM_ID, MSPC_FORM_HIST_PRIMARY_ATT, LSPC_RULE_NAME, LSPC_CONDITION_NAME, LSPC_CONDITION_EXPRESSION, MSPC_CONDITION_HIST_RESULT, MSPC_CONDITION_HIST_CREATED, MSPC_CONDITION_HIST_CREATED_BY, MSPC_FORM_HIST_PROCESS_NUMBER)
+		VALUES
+		(
+		#{lspc_form_id, jdbcType=INTEGER},
+		#{mspc_form_hist_primary_att, jdbcType=VARCHAR},
+		#{lspc_rule_name, jdbcType=VARCHAR},
+		#{lspc_condition_name, jdbcType=VARCHAR},
+		#{lspc_condition_expression, jdbcType=VARCHAR},
+		#{mspc_condition_hist_result, jdbcType=VARCHAR},
+		SYSDATE,
+		#{mspc_condition_hist_created_by, jdbcType=INTEGER},
+		#{mspc_form_hist_process_number, jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<insert id="insertMstPositionSpaj" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_POSITION_SPAJ
+		(REG_SPAJ, MSPS_DATE, LSPD_ID, LSSP_ID, LSSA_ID, LUS_ID, MSPS_DESC)
+		VALUES
+		(
+		#{reg_spaj, jdbcType=VARCHAR},
+		SYSDATE,
+		#{lspd_id, jdbcType=INTEGER},
+		#{lssp_id, jdbcType=INTEGER},
+		#{lssa_id, jdbcType=INTEGER},
+		#{lus_id, jdbcType=INTEGER},
+		#{description, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="insertMstCntPolis" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_CNT_POLIS  
+		(LCA_ID, LSBS_ID, MSCNP_VALUE, MSCNP_MAX)  
+	  	VALUES 
+	  	(
+	  	#{as_cab, jdbcType=VARCHAR},
+	  	#{as_bisnis, jdbcType=INTEGER},
+	  	#{ld_no, jdbcType=BIGINT},
+	  	999999999
+	  	)
+	</insert>
+	
+	<insert id="insertMstPremiUlink" parameterType="com.app.model.PremiUlink">
+	insert into eka.mst_premi_ulink (
+		   reg_spaj, msbi_tahun_ke, msbi_premi_ke, 
+		   premi_ke, line_ak, th_ak, 
+		   premi, total_premi, persen_ak) 
+		values ( #{reg_spaj, jdbcType=VARCHAR}, #{msbi_tahun_ke, jdbcType=INTEGER}, #{msbi_premi_ke, jdbcType=INTEGER}, 
+		   #{premi_ke, jdbcType=INTEGER}, #{line_ak, jdbcType=INTEGER}, #{th_ak, jdbcType=INTEGER}, 
+		   #{premi, jdbcType=DOUBLE}, #{total_premi, jdbcType=DOUBLE}, #{persen_ak, jdbcType=DOUBLE})
+	</insert>
+	
+	<insert id="insertMstBilling" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_BILLING  
+				    ( REG_SPAJ, 
+				      MSBI_TAHUN_KE, 
+				      MSBI_PREMI_KE, 
+				      MSBI_BEG_DATE, 
+				      MSBI_END_DATE,   
+			 	      MSBI_DUE_DATE, 
+			 	      MSBI_AKTIF_DATE, 
+			 	      LKU_ID, 
+			 	      MSBI_POLICY_COST, 
+			 	      MSBI_HCR_POLICY_COST,   
+					  MSBI_TTL_CARD_COST, 
+					  MSBI_STAMP, 
+					  MSBI_INPUT_DATE, 
+					  MSBI_REMAIN, 
+					  MSBI_PAID, 
+					  MSBI_ACTIVE,
+					  MSBI_PRINT, 
+					  MSBI_ADD_BILL, 
+					  LUS_ID, 
+					  LSPD_ID, 
+					  LCA_ID, 
+					  LWK_ID, 
+					  <if test = 'msbi_flag_topup != null'>MSBI_FLAG_TOPUP,</if>
+					  LSRG_ID,
+					  MSBI_TH_BAK,
+					  MSBI_PREMI_BAK,
+					  MSBI_PERSEN_PAID, 
+					  MSBI_TGL_DEBET,
+					  MSBI_NB )  
+			VALUES ( #{reg_spaj, jdbcType=VARCHAR},
+			 		 #{msbi_tahun_ke, jdbcType=INTEGER},
+			 		 #{msbi_premi_ke, jdbcType=INTEGER},
+			 		 #{msbi_beg_date, jdbcType=DATE},
+			 		 #{msbi_end_date, jdbcType=DATE},
+			 		 #{msbi_due_date, jdbcType=DATE},
+			 		 #{msbi_aktif_date, jdbcType=DATE},
+			 		 #{lku_id, jdbcType=VARCHAR},
+			 		 #{msbi_policy_cost, jdbcType=DOUBLE},
+			 		 #{msbi_hcr_policy_cost, jdbcType=DOUBLE},
+			 		 #{msbi_ttl_card_cost, jdbcType=DOUBLE},
+			 		 #{msbi_stamp, jdbcType=DOUBLE},
+					 SYSDATE,
+					 #{msbi_remain, jdbcType=DOUBLE},
+					 #{msbi_paid, jdbcType=INTEGER},
+					 #{msbi_active, jdbcType=INTEGER},
+					 #{msbi_print, jdbcType=INTEGER},
+					 #{msbi_add_bill, jdbcType=INTEGER},
+					 #{lus_id, jdbcType=VARCHAR},
+					 #{lspd_id, jdbcType=INTEGER},
+					 #{lca_id, jdbcType=VARCHAR},
+					 #{lwk_id, jdbcType=VARCHAR},
+					 <if test = 'msbi_flag_topup != null'>#{msbi_flag_topup, jdbcType=INTEGER},</if>
+					 #{lsrg_id, jdbcType=VARCHAR},
+					 #{msbi_th_bak, jdbcType=INTEGER},
+					 #{msbi_premi_bak, jdbcType=INTEGER},
+					 #{msbi_persen_paid, jdbcType=INTEGER},
+					 #{tgl_debet, jdbcType=DATE},
+					 1 ) 
+	</insert>
+	
+	<insert id="insertMstDetBillingSpaj" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_DET_BILLING  
+			( SELECT REG_SPAJ, 1, 1, ROWNUM, LSBS_ID,   
+				      LSDBS_NUMBER, MSPR_PREMIUM, MSPR_DISCOUNT  
+			  FROM   EKA.MST_PRODUCT_INSURED  
+			  WHERE  ( REG_SPAJ = #{reg_spaj, jdbcType=VARCHAR} ) AND  
+						( MSTE_INSURED_NO = 1 ) AND 
+						( MSPR_ACTIVE = 1 )
+			)
+	</insert>
+	
+	<insert id="insertMstDetBilling2" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_DET_BILLING (
+		   REG_SPAJ, MSBI_TAHUN_KE, MSBI_PREMI_KE, 
+		   MSDB_DET_KE, LSBS_ID, LSDBS_NUMBER, 
+		   MSDB_PREMIUM, MSDB_DISCOUNT) 
+		VALUES (#{reg_spaj, jdbcType=VARCHAR}, #{msbi_tahun_ke, jdbcType=INTEGER}, #{msbi_premi_ke, jdbcType=INTEGER}, 
+		   #{msdb_det_ke, jdbcType=INTEGER}, #{lsbs_id, jdbcType=INTEGER}, #{lsdbs_number, jdbcType=INTEGER}, 
+		   #{msdb_premium, jdbcType=DOUBLE}, #{msdb_discount, jdbcType=DOUBLE})
+	</insert>
+	
+	<insert id="insertMstPayment" parameterType="com.app.model.Payment">
+	INSERT INTO EKA.MST_PAYMENT  
+		         ( MSPA_PAYMENT_ID,   
+		           LKU_ID,   
+		           LSJB_ID,   
+		           CLIENT_BANK,   
+		           REG_SPAJ,   
+		           MSDP_NUMBER,   
+		           MSPA_NO_REK,   
+		           MSPA_PAY_DATE,   
+		           MSPA_DUE_DATE,   
+		           MSPA_DATE_BOOK,   
+		           MSPA_PAYMENT,   
+		           MSPA_INPUT_DATE,
+		           <if test = 'mspa_old_policy != null'>MSPA_OLD_POLICY,</if>  
+		           MSPA_DESC,   
+		           LUS_ID,   
+		           LSREK_ID,  
+		           <if test = 'mspa_no_pre != null'>MSPA_NO_PRE,</if>
+		           MSPA_JURNAL,   
+		           MSPA_NILAI_KURS,
+		           <if test = 'mspa_no_voucher != null'>MSPA_NO_VOUCHER,</if>
+		           MSPA_ACTIVE,
+		           MSPA_FLAG_MERCHANT )  
+		  VALUES ( #{mspa_payment_id, jdbcType=VARCHAR},   
+		           #{lku_id, jdbcType=VARCHAR},   
+		           #{lsjb_id, jdbcType=INTEGER},   
+		           #{client_bank, jdbcType=INTEGER},   
+		           #{reg_spaj, jdbcType=VARCHAR},   
+		           #{msdp_number, jdbcType=INTEGER},    
+		           #{mspa_no_rek, jdbcType=VARCHAR},   
+		           #{mspa_pay_date, jdbcType=DATE}, 
+		           #{mspa_due_date, jdbcType=DATE},    
+		           #{mspa_date_book, jdbcType=DATE},  
+		           #{mspa_payment, jdbcType=DOUBLE},   
+		           #{mspa_input_date, jdbcType=DATE}, 
+		           <if test = 'mspa_old_policy != null'>#{mspa_old_policy, jdbcType=VARCHAR},</if>
+		           #{mspa_desc, jdbcType=VARCHAR},   
+		           #{lus_id, jdbcType=INTEGER},    
+		           #{lsrek_id, jdbcType=INTEGER}, 
+		           <if test = 'mspa_no_pre != null'>#{mspa_no_pre, jdbcType=VARCHAR},</if>
+		           #{mspa_jurnal, jdbcType=INTEGER},   
+		           #{mspa_nilai_kurs, jdbcType=DOUBLE},
+		           <if test = 'mspa_no_voucher != null'>#{mspa_no_voucher, jdbcType=VARCHAR},</if>
+		           #{mspa_active, jdbcType=INTEGER}, 
+		           #{mspa_flag_merchant, jdbcType=INTEGER})  
+	</insert>
+	
+	<insert id="insertMstTagPayment" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_TAG_PAYMENT  
+			         ( REG_SPAJ,   
+			           MSBI_TAHUN_KE,   
+			           MSBI_PREMI_KE,   
+			           MSTP_VALUE, 
+			           MSPA_PAYMENT_ID
+			            )  
+			  VALUES ( #{reg_spaj, jdbcType=VARCHAR},    
+			           #{msbi_tahun_ke, jdbcType=INTEGER},   
+			           #{msbi_premi_ke, jdbcType=INTEGER},  
+			           #{mstp_value, jdbcType=DOUBLE}, 
+		               #{mspa_payment_id, jdbcType=VARCHAR}
+			           )
+	</insert>
+	
+	<insert id="insertMstTransHistory" parameterType="java.util.HashMap">
+	INSERT INTO eka.mst_trans_history
+            ( reg_spaj, jenis, trans_ke, trans_ke2, ${kolom_tgl}
+            <if test="kolom_user != null">
+                , ${kolom_user}
+            </if>
+            )
+        VALUES
+            ( #{reg_spaj, jdbcType=VARCHAR}, 23, 1, 1, #{tgl, jdbcType=DATE}
+            <if test="kolom_user != null">
+            , #{lus_id, jdbcType=VARCHAR}
+            </if>
+            )
+	</insert>
+	
+	
+</mapper>

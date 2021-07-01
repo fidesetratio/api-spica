@@ -1,0 +1,156 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.app.mapper.dao.SpicaDAO">
+
+	<update id="updateForm" parameterType="com.app.model.LstSpicaForm">
+		UPDATE EKA.LST_SPICA_FORM
+			SET LSPC_FORM_TYPE = #{lspc_form_type, jdbcType=VARCHAR}, 
+			LSPC_FORM_DESCRIPTION = #{lspc_form_description, jdbcType=VARCHAR},
+			LSPC_FORM_SOURCE = #{lspc_form_source, jdbcType=VARCHAR},
+			LSPC_FORM_PRIMARY_ATTRIBUTE = #{lspc_form_primary_attribute, jdbcType=VARCHAR},
+			LSPC_FORM_MODIFIED_DATE = SYSDATE,
+			LSPC_FORM_MODIFIED_BY = #{lspc_form_modified_by, jdbcType=INTEGER}
+			WHERE LSPC_FORM_ID = #{lspc_form_id, jdbcType=INTEGER} AND LSPC_FORM_FLAG_ACTIVE = 1
+	</update>
+	
+	<update id="updateFormField" parameterType="java.util.HashMap">
+		UPDATE EKA.LST_SPICA_FIELD A
+			SET A.LSPC_FIELD_MODIFIED_DATE = SYSDATE,
+			A.LSPC_FIELD_MODIFIED_BY = #{lspc_field_modified_by, jdbcType=INTEGER},
+			A.LSPC_FIELD_FLAG_ACTIVE = 0
+			WHERE A.LSPC_FORM_ID = #{lspc_form_id, jdbcType=INTEGER}
+			AND NOT EXISTS(SELECT B.COLUMN_NAME
+						FROM ALL_TAB_COLS B
+						WHERE OWNER = 'EKA'
+						AND TABLE_NAME = #{lspc_form_source, jdbcType=VARCHAR}
+						AND COLUMN_ID IS NOT NULL
+						AND A.LSPC_FIELD_NAME = B.COLUMN_NAME
+						)
+	</update>
+	
+	<update id="updateLstSpicaVariable" parameterType="com.app.model.LstSpicaVariable">
+		UPDATE EKA.LST_SPICA_VARIABLE
+			SET LSPC_VARIABLE_TYPE = #{lspc_variable_type, jdbcType=VARCHAR},
+			LSPC_VARIABLE_EXPRESSION = #{lspc_variable_expression, jdbcType=VARCHAR},
+			LSPC_VARIABLE_DESCRIPTION = #{lspc_variable_description, jdbcType=VARCHAR},
+			LSPC_VARIABLE_MODIFIED_DATE = SYSDATE,
+			LSPC_VARIABLE_MODIFIED_BY = #{lspc_variable_modified_by, jdbcType=INTEGER}
+			WHERE LSPC_FORM_ID = #{lspc_form_id, jdbcType=INTEGER} 
+			AND LSPC_VARIABLE_NAME = #{lspc_variable_name, jdbcType=VARCHAR} 
+			AND LSPC_VARIABLE_FLAG_ACTIVE = 1
+	</update>
+	
+	<update id="updateLstSpicaRule" parameterType="com.app.model.LstSpicaRule">
+		UPDATE EKA.LST_SPICA_RULE
+			SET LSPC_RULE_DESCRIPTION = #{lspc_rule_description, jdbcType=VARCHAR}, 
+			LSPC_RULE_EXPRESSION = #{lspc_rule_expression, jdbcType=VARCHAR},
+			LSPC_RULE_ERROR_MSG = #{lspc_rule_error_msg, jdbcType=VARCHAR},
+			LSPC_RULE_MODIFIED_DATE = SYSDATE,
+			LSPC_RULE_MODIFIED_BY = #{lspc_rule_modified_by, jdbcType=INTEGER},
+			LSPC_RULE_PREREQUISITES = #{lspc_rule_prerequisites, jdbcType=VARCHAR},
+			LSPC_RULE_CATEGORY_ID = #{lspc_rule_category_id, jdbcType=INTEGER}
+			WHERE LSPC_FORM_ID = #{lspc_form_id, jdbcType=INTEGER} 
+			AND LSPC_RULE_NAME = #{lspc_rule_name, jdbcType=VARCHAR} 
+			AND LSPC_RULE_FLAG_ACTIVE = 1
+	</update>
+	
+	<update id="updateLstSpicaCondition" parameterType="com.app.model.LstSpicaCondition">
+		UPDATE EKA.LST_SPICA_CONDITION
+			SET LSPC_CONDITION_EXPRESSION = #{lspc_condition_expression, jdbcType=VARCHAR},
+			LSPC_CONDITION_DESCRIPTION = #{lspc_condition_description, jdbcType=VARCHAR}, 
+			LSPC_CONDITION_MODIFIED_DATE = SYSDATE,
+			LSPC_CONDITION_MODIFIED_BY = #{lspc_condition_modified_by, jdbcType=INTEGER}
+			WHERE LSPC_FORM_ID = #{lspc_form_id, jdbcType=INTEGER} 
+			AND LSPC_RULE_NAME = #{lspc_rule_name, jdbcType=VARCHAR}
+			AND LSPC_CONDITION_NAME = #{lspc_condition_name, jdbcType=VARCHAR} 
+			AND LSPC_CONDITION_FLAG_ACTIVE = 1
+	</update>
+	
+	<update id="updateLstSpicaList" parameterType="com.app.model.LstSpicaList">
+		UPDATE EKA.LST_SPICA_LIST
+			SET LSPC_LIST_DESCRIPTION = #{lspc_list_description, jdbcType=VARCHAR}, 
+			LSPC_LIST_SOURCE = #{lspc_list_source, jdbcType=VARCHAR},
+			LSPC_LIST_FIELD_NAME = #{lspc_list_field_name, jdbcType=VARCHAR},
+			LSPC_LIST_FIELD_TYPE = #{lspc_list_field_type, jdbcType=VARCHAR},
+			LSPC_LIST_MODIFIED_DATE = SYSDATE,
+			LSPC_LIST_MODIFIED_BY = #{lspc_list_modified_by, jdbcType=INTEGER}
+			WHERE LSPC_LIST_NAME = #{lspc_list_name, jdbcType=VARCHAR} AND LSPC_LIST_FLAG_ACTIVE = 1
+	</update>
+	
+	<update id="updateMstPolicyLspdId" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_POLICY
+		SET LSPD_ID = #{lspd_id, jdbcType=INTEGER}
+		WHERE REG_SPAJ = #{reg_spaj, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateMstInsured" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_INSURED
+		SET LSPD_ID = #{lspd_id, jdbcType=INTEGER},
+		LSSA_ID = #{lssa_id, jdbcType=INTEGER},
+		FLAG_SPEEDY = #{flag_speedy, jdbcType=INTEGER},
+		FLAG_QA = #{flag_qa, jdbcType=INTEGER}
+		WHERE REG_SPAJ = #{reg_spaj, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateJnsMedis" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_INSURED
+		SET JNS_MEDIS = #{ltm_id, jdbcType=INTEGER}
+		WHERE REG_SPAJ = #{reg_spaj, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateMstCntPolicy" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_CNT_POLIS  
+		SET MSCNP_VALUE = #{ld_no, jdbcType=INTEGER} 
+		WHERE EKA.MST_CNT_POLIS.LCA_ID = #{as_cab, jdbcType=VARCHAR}
+		AND EKA.MST_CNT_POLIS.LSBS_ID = #{as_bisnis, jdbcType=INTEGER}
+	</update>
+	
+	<update id="updateMstPolicyFormated" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_POLICY 
+	  	SET MSPO_POLICY_NO = #{ls_nopol, jdbcType=VARCHAR},
+	  	MSPO_POLICY_NO_FORMAT = #{ls_nopol_formated, jdbcType=VARCHAR}
+	   	WHERE EKA.MST_POLICY.REG_SPAJ = #{txtnospaj, jdbcType=VARCHAR}
+	   	AND EKA.MST_POLICY.LSTB_ID = 1
+	</update>
+	
+	<update id="updateMstPolicyMspoPreExixting" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_POLICY
+		SET MSPO_PREEXISTING = #{value, jdbcType=INTEGER}
+	    WHERE EKA.MST_POLICY.REG_SPAJ = #{txtnospaj, jdbcType=VARCHAR}
+	    AND EKA.MST_POLICY.LSPD_ID = #{lspdId, jdbcType=INTEGER}
+	    AND EKA.MST_POLICY.LSTB_ID = #{lstbId, jdbcType=INTEGER}
+	</update>
+	
+	<update id="updateRiderSavePaidPremi" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_RIDER_SAVE
+	      SET MRS_PREMI_BAYAR = #{premi_bayar, jdbcType=DOUBLE}, MRS_KURANG_BAYAR = #{premi_kurang_bayar, jdbcType=DOUBLE}  
+	    WHERE REG_SPAJ =#{reg_spaj, jdbcType=VARCHAR}
+	    AND LSBS_ID = #{lsbs_id, jdbcType=VARCHAR}
+	    AND LSDBS_NUMBER =#{lsdbs_number, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateMstBillingRemain" parameterType="java.util.HashMap">
+	UPDATE EKA.MST_BILLING 
+	      SET MSBI_REMAIN = MSBI_REMAIN + #{ldecPremi, jdbcType=DOUBLE}, msbi_paid = #{li_paid, jdbcType=INTEGER} 
+	    WHERE REG_SPAJ =#{spaj, jdbcType=VARCHAR}
+	    AND MSBI_PREMI_KE =#{premi_ke, jdbcType=INTEGER}
+	    AND MSBI_TAHUN_KE =#{tahun_ke, jdbcType=INTEGER}
+	</update>
+	
+	<update id="updateMstPolicyMspoNextBill" parameterType="java.util.HashMap">
+	UPDATE  EKA.MST_POLICY
+			 SET  EKA.MST_POLICY.MSPO_NEXT_BILL = #{mspo_next_bill, jdbcType=DATE}
+			 WHERE  EKA.MST_POLICY.LSTB_ID = #{lstb_id, jdbcType=INTEGER} and
+			 		EKA.MST_POLICY.REG_SPAJ= #{reg_spaj, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateMstTransHistory" parameterType="java.util.HashMap">
+	UPDATE eka.mst_trans_history                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+        SET ${kolom_tgl} = #{tgl, jdbcType=DATE}
+            <if test="kolom_user != null">
+                , ${kolom_user} = #{lus_id, jdbcType=VARCHAR}
+            </if>           
+        WHERE reg_spaj =  #{reg_spaj, jdbcType=VARCHAR}
+            and jenis = 23
+	</update>
+	
+</mapper>
