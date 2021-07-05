@@ -2009,6 +2009,10 @@ public class PF {
 			        
 			        Integer usiaPP = usia;
 			        
+//			        System.out.println(usiaPP);
+//			        System.out.println(lstProdset.getHolder_age_from());
+//			        System.out.println(lstProdset.getHolder_age_to());
+			        
 			        if (usiaPP.compareTo(lstProdset.getHolder_age_from()) < 0) {
 			        	result = false;
 			        } else if (usiaPP.compareTo(lstProdset.getHolder_age_to()) > 0) {
@@ -2224,6 +2228,9 @@ public class PF {
 					calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
 			        calendarEndDate.add(Calendar.DATE, -1);
 			        
+//			        System.out.println(calendarMsprEndDate.getTime());
+//			        System.out.println(calendarEndDate.getTime());
+			        
 			        if(calendarEndDate.compareTo(calendarMsprEndDate) == 0) {
 			        	result = true;
 			        } else {
@@ -2281,6 +2288,9 @@ public class PF {
 			            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
 					}
 					
+//					System.out.println(Integer.parseInt(masaPertanggungan.toString()));
+//					System.out.println(profile.getMspr_ins_period());
+					
 					if(profile.getMspr_ins_period() == Integer.parseInt(masaPertanggungan.toString())) {
 						result = true;
 					} else {
@@ -2334,6 +2344,9 @@ public class PF {
 					} else {
 						masaBayar = Integer.parseInt(masaPertanggungan.toString());
 					}
+					
+//					System.out.println(profile.getMspo_pay_period());
+//					System.out.println(masaBayar);
 					
 					if(profile.getMspo_pay_period() == masaBayar) {
 						result = true;
@@ -2517,35 +2530,81 @@ public class PF {
 					BigDecimal maxUP = new BigDecimal (0);
 					BigDecimal minUP = new BigDecimal (0);
 
-					if (lstProdsetCalc.getFlag_maxup() == 1) {
-			            maxUP = lstProdsetCalc.getMax_up().setScale(0, RoundingMode.HALF_UP);
+//					if (lstProdsetCalc.getFlag_maxup() == 1) {
+//			            maxUP = lstProdsetCalc.getMax_up().setScale(0, RoundingMode.HALF_UP);
+//			        } else {
+//			        	Map param = new HashMap();
+//						param.put("BASE_PREMIUM", profile.getMspr_premium().toString());
+//						param.put("LI_KALI", profile.getLscb_kali().toString());
+//						param.put("LSBS_ID", lsbs_id.toString());
+//						param.put("LSDBS_NUMBER", lsdbs_number.toString());
+//						param.put("LI_USIA_TT", profile.getMste_age().toString());
+//						
+//			            maxUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_max_up().toString());
+//			        }
+//					
+//			        if (lstProdsetCalc.getFlag_minup() == 1) {
+//			            minUP = lstProdsetCalc.getMin_up().setScale(0, RoundingMode.HALF_UP);
+//			        } else {
+//			        	Map param = new HashMap();
+//						param.put("BASE_PREMIUM", profile.getMspr_premium().toString());
+//						param.put("LI_KALI", profile.getLscb_kali().toString());
+//						
+//			            minUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_min_up().toString());
+//			        }
+//			        
+//			        if (profile.getMspr_tsi().compareTo(minUP) < 0) {
+//			            result = false;
+//			        } else if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
+//			            result = false;
+//			        } else {
+//			        	result = true;
+//			        } 
+			        
+			        if(lstProdsetCalc.getLpf_id_min_up() != null) {
+			        	if(lstProdsetCalc.getLpf_id_max_up() == null || lstProdsetCalc.getLpf_id_max_up() == 0) {
+				        	Map param = new HashMap();
+							param.put("BASE_PREMIUM", profile.getMspr_premium().toString());
+							param.put("PREMIUM", profile.getMspr_premium().toString());
+							param.put("LI_KALI", profile.getLscb_kali().toString());
+							param.put("LSBS_ID", lsbs_id.toString());
+							param.put("LSDBS_NUMBER", lsdbs_number.toString());
+							param.put("LI_USIA_TT", profile.getMste_age().toString());
+							
+							minUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_min_up().toString());
+							maxUP = minUP;
+			        	} else {
+			        		Map param = new HashMap();
+							param.put("BASE_PREMIUM", profile.getMspr_premium().toString());
+							param.put("PREMIUM", profile.getMspr_premium().toString());
+							param.put("LI_KALI", profile.getLscb_kali().toString());
+							param.put("LSBS_ID", lsbs_id.toString());
+							param.put("LSDBS_NUMBER", lsdbs_number.toString());
+							param.put("LI_USIA_TT", profile.getMste_age().toString());
+							
+							minUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_min_up().toString());
+							maxUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_max_up().toString());
+			        	}
+			        	
+			        	if (profile.getMspr_tsi().compareTo(minUP) < 0) {
+				            result = false;
+				        } else if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
+				            result = false;
+				        } else {
+				        	result = true;
+				        }
 			        } else {
-			        	Map param = new HashMap();
-						param.put("BASE_PREMIUM", profile.getMspr_premium().toString());
-						param.put("LI_KALI", profile.getLscb_kali().toString());
-						param.put("LSBS_ID", lsbs_id.toString());
-						param.put("LSDBS_NUMBER", lsdbs_number.toString());
-						param.put("LI_USIA_TT", profile.getMste_age().toString());
-						
-			            maxUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_max_up().toString());
+			        	minUP = lstProdsetCalc.getMin_up().setScale(0, RoundingMode.HALF_UP);
+			        	maxUP = lstProdsetCalc.getMax_up().setScale(0, RoundingMode.HALF_UP);
+			        	
+			        	if (profile.getMspr_tsi().compareTo(minUP) < 0) {
+				            result = false;
+				        } else if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
+				            result = false;
+				        } else {
+				        	result = true;
+				        }
 			        }
-					
-			        if (lstProdsetCalc.getFlag_minup() == 1) {
-			            minUP = lstProdsetCalc.getMin_up().setScale(0, RoundingMode.HALF_UP);
-			        } else {
-			        	Map param = new HashMap();
-						param.put("BASE_PREMIUM", profile.getMspr_premium().toString());
-						param.put("LI_KALI", profile.getLscb_kali().toString());
-						
-			            minUP = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_min_up().toString());
-			        }
-			        if (profile.getMspr_tsi().compareTo(minUP) < 0) {
-			            result = false;
-			        } else if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
-			            result = false;
-			        } else {
-			        	result = true;
-			        } 
 				} else {
 					result = false;
 				}
