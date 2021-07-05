@@ -2389,7 +2389,12 @@ public class PF {
 					if (lstProdset.getPremium_holiday_flag() == 1) {
 			            result = true;
 			        } else {
-			            masaCuti = lstProdset.getPremium_holiday();
+			        	if(lstProdset.getPremium_holiday() == null) {
+			        		masaCuti = 0;
+			        	} else {
+			        		masaCuti = lstProdset.getPremium_holiday();
+			        	}
+			        	
 			            if(profile.getMspo_installment() == masaCuti) {
 							result = true;
 						} else {
