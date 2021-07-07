@@ -343,6 +343,14 @@ public interface SpicaDAO {
 	
 	public Integer selectMstTransHist(String reg_spaj);
 	
+	public MstProductInsured selectProdukAkuisisi100Persen(String reg_spaj);
+	
+	public BigDecimal selectPremiumDeficit(String reg_spaj);
+	
+	public BigDecimal selectTopUpMuKe2(String reg_spaj);
+	
+	public PremiumValidationProfile selectPremiPokok(String reg_spaj);
+	
 	//Update
 
 	public void updateForm(LstSpicaForm lstSpicaForm);

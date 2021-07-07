@@ -1977,6 +1977,47 @@ public class PF {
 		return result;
 	}
 	
+	public static Boolean PremiumDeficitValidation(String reg_spaj) {
+		
+		Boolean result = null;
+		
+		if(reg_spaj != null && reg_spaj != "") {
+			SpicaServices services = new SpicaServices();
+			
+			MstProductInsured mstProductInsured = services.selectProdukAkuisisi100Persen(reg_spaj);
+			
+			if(mstProductInsured == null) {
+				result = true;
+			} else {
+				//SELECT JUMLAH KEKURANGAN PREMI JIKA ADA
+				BigDecimal premium_deficit = services.selectPremiumDeficit(reg_spaj);
+				
+				if(premium_deficit == null) {
+					result = true;
+				} else {
+					//SELECT JUMLAH TOPUP UNTUK MENUTUPI KEKURANGAN PREMI
+					BigDecimal sum_topup = services.selectTopUpMuKe2(reg_spaj);
+					
+					if(sum_topup == null) {
+						result = false;
+					} else {
+						BigDecimal jumlah_akhir = premium_deficit.add(sum_topup);
+						
+						if(jumlah_akhir.compareTo(BigDecimal.ZERO) >= 0){
+							result = true;
+						} else {
+							result = false;
+						}
+					}
+				}
+			}
+		} else {
+			result = false;
+		}
+		
+		return result;
+	}
+	
 	//PRODUCT VALIDATION
 	
 	public static Boolean ProductAgeValidationHolder(String reg_spaj) {
@@ -2669,12 +2710,14 @@ public class PF {
 				        if(lstProdsetCalc.getLpf_id_min_premipokok() != 0) {
 				        	BigDecimal minPremiPokok;
 				        	
+				        	PremiumValidationProfile profile_premi_pokok = services.selectPremiPokok(reg_spaj);
+				        	
 				        	param.put("MIN_PREMIPOKOK_PERSEN", lstProdsetCalc.getMin_premipokok_persen() != null ? lstProdsetCalc.getMin_premipokok_persen().toString() : null);
 				        	param.put("VALIDASI_MIN_PREMI", lstProdsetCalc.getMin_premium() != null ? lstProdsetCalc.getMin_premium().toString() : null);
 				        	
 				        	minPremiPokok = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_min_premipokok().toString());
 				        	
-				        	if (profile.getMu_jlh_premi().compareTo(minPremiPokok) < 0) {
+				        	if (profile_premi_pokok.getMu_jlh_premi().compareTo(minPremiPokok) < 0) {
 				                result = false;
 				            }
 				        }

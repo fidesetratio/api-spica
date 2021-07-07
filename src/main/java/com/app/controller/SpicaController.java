@@ -87,7 +87,7 @@ public class SpicaController {
 	    	Date newDate = simpleDateFormat.parse("1987-07-06");
 			
 			map.put("nik", "3173044607870002");
-			map.put("regSpaj", "37202147187");
+			map.put("regSpaj", "37202147385");
 			map.put("date", newDate);
 			map.put("booleanResult", true);
 			map.put("mcl_id", "002100014972");
@@ -104,7 +104,7 @@ public class SpicaController {
 			map.put("no_account", "0053061206");
 			map.put("email", "agoenk_reser@yahoo.com");
 			
-			Object value = utils.execute("MedicalPolicyValid(regSpaj)", map);
+			Object value = utils.execute("ProductPremiumValidation(regSpaj)", map);
 			
 			//spajDocumentStatusProcess("09210547075", 0);
 			
@@ -142,8 +142,8 @@ public class SpicaController {
 			
 			//callSpicaWorfklowEngine("37202147095", true, 0);
 			
-			AutodebetServices autodebetServices = new AutodebetServices();
-			autodebetServices.prosesAutoDebetNB("37202147095", 0, 218, 10, 17);
+			//AutodebetServices autodebetServices = new AutodebetServices();
+			//autodebetServices.prosesAutoDebetNB("37202147095", 0, 218, 10, 17);
 			
 		} catch (Exception e) {
 			error = true;

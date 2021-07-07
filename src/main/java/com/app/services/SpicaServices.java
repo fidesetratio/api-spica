@@ -1353,6 +1353,30 @@ public class SpicaServices {
 		
 		return dao.selectMstTransHist(reg_spaj);
 	}
+	
+	public MstProductInsured selectProdukAkuisisi100Persen(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectProdukAkuisisi100Persen(reg_spaj);
+	}
+	
+	public BigDecimal selectPremiumDeficit(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectPremiumDeficit(reg_spaj);
+	}
+	
+	public BigDecimal selectTopUpMuKe2(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectTopUpMuKe2(reg_spaj);
+	}
+	
+	public PremiumValidationProfile selectPremiPokok(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectPremiPokok(reg_spaj);
+	}
 
 	
 	//Update

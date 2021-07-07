@@ -518,19 +518,23 @@
 	</select>
 	
 	<select id="selectProductPremiumValidation" parameterType="string" resultType="com.app.model.PremiumValidationProfile">	 		
-	 	SELECT B.MSTE_AGE, C.LSBS_ID, C.LSDBS_NUMBER, C.LKU_ID, C.MSPR_TSI, C.MSPR_PREMIUM, D.LSCB_KALI, D.LSCB_KALI_OLD, E.MU_JLH_PREMI
+	 	SELECT B.MSTE_AGE, C.LSBS_ID, C.LSDBS_NUMBER, C.LKU_ID, C.MSPR_TSI, C.MSPR_PREMIUM, D.LSCB_KALI, D.LSCB_KALI_OLD
 			FROM EKA.MST_POLICY A
 			LEFT JOIN EKA.MST_INSURED B ON B.REG_SPAJ = A.REG_SPAJ
 			LEFT JOIN EKA.MST_PRODUCT_INSURED C ON C.REG_SPAJ = A.REG_SPAJ
 			LEFT JOIN EKA.LST_PAY_MODE D ON D.LSCB_ID = A.LSCB_ID
-			LEFT JOIN EKA.MST_ULINK E ON E.REG_SPAJ = A.REG_SPAJ
 			WHERE A.REG_SPAJ = #{value, jdbcType=VARCHAR}
 			AND B.MSTE_INSURED_NO = 1
 			<![CDATA[
 			AND C.LSBS_ID < 300
 			]]>
-			AND E.LT_ID = 1
-			AND E.MU_KE = 1
+	</select>
+	
+	<select id="selectPremiPokok" parameterType="string" resultType="com.app.model.PremiumValidationProfile">	 		
+	 	SELECT MU_JLH_PREMI
+			FROM EKA.MST_ULINK
+			WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}
+			AND LT_ID = 1
 	</select>
 	
 	<select id="selectProdSetCalc" parameterType="com.app.model.LstProdsetCalc" resultType="com.app.model.LstProdsetCalc">	 		
@@ -1510,5 +1514,28 @@
     <select id="selectMstTransHist" parameterType="string" resultType="int">
     	select count(*) from eka.mst_trans_history where reg_spaj = #{value, jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectProdukAkuisisi100Persen" parameterType="string" resultType="com.app.model.MstProductInsured">	 		
+	 	SELECT LSBS_ID, LSDBS_NUMBER from eka.lst_bak_ulink
+	        WHERE AKUISISI = 1
+	        and TAHUN_KE = 1
+	        and LSBS_ID = (SELECT LSBS_ID FROM EKA.MST_PRODUCT_INSURED WHERE REG_SPAJ = #{value, jdbcType=VARCHAR} <![CDATA[ AND LSBS_ID < 300 ]]>)
+	        and LSDBS_NUMBER = (SELECT LSDBS_NUMBER FROM EKA.MST_PRODUCT_INSURED WHERE REG_SPAJ = #{value, jdbcType=VARCHAR} <![CDATA[ AND LSBS_ID < 300 ]]>)
+	</select>
 	
+	<select id="selectPremiumDeficit" parameterType="string" resultType="decimal">	 		
+	 	SELECT MBU_JUMLAH
+			FROM EKA.MST_BIAYA_ULINK
+			WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}
+			AND MU_KE = 1
+			AND LJB_ID = 99
+	</select>
+	
+	<select id="selectTopUpMuKe2" parameterType="string" resultType="decimal">	 		
+	 	SELECT SUM(MBU_JUMLAH)
+			FROM EKA.MST_BIAYA_ULINK
+			WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}
+			AND MU_KE = 2
+	</select>
+
 </mapper>
