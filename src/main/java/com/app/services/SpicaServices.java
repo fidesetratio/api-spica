@@ -1360,10 +1360,10 @@ public class SpicaServices {
 		return dao.selectProdukAkuisisi100Persen(reg_spaj);
 	}
 	
-	public BigDecimal selectPremiumDeficit(String reg_spaj) {
+	public BigDecimal selectInvestmenAllocationDeficit(String reg_spaj) {
 		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
 		
-		return dao.selectPremiumDeficit(reg_spaj);
+		return dao.selectInvestmenAllocationDeficit(reg_spaj);
 	}
 	
 	public BigDecimal selectTopUpMuKe2(String reg_spaj) {

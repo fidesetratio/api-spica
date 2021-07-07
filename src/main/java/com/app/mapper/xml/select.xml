@@ -1523,7 +1523,7 @@
 	        and LSDBS_NUMBER = (SELECT LSDBS_NUMBER FROM EKA.MST_PRODUCT_INSURED WHERE REG_SPAJ = #{value, jdbcType=VARCHAR} <![CDATA[ AND LSBS_ID < 300 ]]>)
 	</select>
 	
-	<select id="selectPremiumDeficit" parameterType="string" resultType="decimal">	 		
+	<select id="selectInvestmenAllocationDeficit" parameterType="string" resultType="decimal">	 		
 	 	SELECT MBU_JUMLAH
 			FROM EKA.MST_BIAYA_ULINK
 			WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}

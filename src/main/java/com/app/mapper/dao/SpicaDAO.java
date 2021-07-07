@@ -345,7 +345,7 @@ public interface SpicaDAO {
 	
 	public MstProductInsured selectProdukAkuisisi100Persen(String reg_spaj);
 	
-	public BigDecimal selectPremiumDeficit(String reg_spaj);
+	public BigDecimal selectInvestmenAllocationDeficit(String reg_spaj);
 	
 	public BigDecimal selectTopUpMuKe2(String reg_spaj);
 	

@@ -1977,7 +1977,7 @@ public class PF {
 		return result;
 	}
 	
-	public static Boolean PremiumDeficitValidation(String reg_spaj) {
+	public static Boolean InvestmentAllocationValidation(String reg_spaj) {
 		
 		Boolean result = null;
 		
@@ -1989,19 +1989,19 @@ public class PF {
 			if(mstProductInsured == null) {
 				result = true;
 			} else {
-				//SELECT JUMLAH KEKURANGAN PREMI JIKA ADA
-				BigDecimal premium_deficit = services.selectPremiumDeficit(reg_spaj);
+				//SELECT JUMLAH KEKURANGAN ALOKASI INVESTASI JIKA ADA
+				BigDecimal investment_allocation_deficit = services.selectInvestmenAllocationDeficit(reg_spaj);
 				
-				if(premium_deficit == null) {
+				if(investment_allocation_deficit == null) {
 					result = true;
 				} else {
-					//SELECT JUMLAH TOPUP UNTUK MENUTUPI KEKURANGAN PREMI
+					//SELECT JUMLAH TOPUP UNTUK MENUTUPI KEKURANGAN ALOKASI INVESTASI
 					BigDecimal sum_topup = services.selectTopUpMuKe2(reg_spaj);
 					
 					if(sum_topup == null) {
 						result = false;
 					} else {
-						BigDecimal jumlah_akhir = premium_deficit.add(sum_topup);
+						BigDecimal jumlah_akhir = investment_allocation_deficit.add(sum_topup);
 						
 						if(jumlah_akhir.compareTo(BigDecimal.ZERO) >= 0){
 							result = true;
