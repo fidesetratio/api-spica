@@ -2557,7 +2557,7 @@ public class PF {
 	
 	public static Boolean ProductSumInsuredValidation(String reg_spaj) {
 		
-		Boolean result = null;
+		Boolean result = true;
 		
 		if(reg_spaj != null && reg_spaj != "") {
 			SpicaServices services = new SpicaServices();
@@ -2636,20 +2636,25 @@ public class PF {
 				            result = false;
 				        } else if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
 				            result = false;
-				        } else {
-				        	result = true;
 				        }
 			        } else {
-			        	minUP = lstProdsetCalc.getMin_up().setScale(0, RoundingMode.HALF_UP);
-			        	maxUP = lstProdsetCalc.getMax_up().setScale(0, RoundingMode.HALF_UP);
+			        	//VALIDASI MIN UP
+			        	if(lstProdsetCalc.getMin_up() != null) {
+			        		minUP = lstProdsetCalc.getMin_up().setScale(0, RoundingMode.HALF_UP);
+			        		
+			        		if (profile.getMspr_tsi().compareTo(minUP) < 0) {
+					            result = false;
+					        }
+			        	}
 			        	
-			        	if (profile.getMspr_tsi().compareTo(minUP) < 0) {
-				            result = false;
-				        } else if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
-				            result = false;
-				        } else {
-				        	result = true;
-				        }
+			        	//VALIDASI MAX UP
+			        	if(lstProdsetCalc.getMax_up() != null) {
+			        		maxUP = lstProdsetCalc.getMax_up().setScale(0, RoundingMode.HALF_UP);
+			        		
+			        		if (profile.getMspr_tsi().compareTo(maxUP) > 0) {
+					            result = false;
+					        }
+			        	}
 			        }
 				} else {
 					result = false;
@@ -2710,14 +2715,20 @@ public class PF {
 				        if(lstProdsetCalc.getLpf_id_min_premipokok() != 0) {
 				        	BigDecimal minPremiPokok;
 				        	
-				        	PremiumValidationProfile profile_premi_pokok = services.selectPremiPokok(reg_spaj);
+				        	//YANG MENGGUNAKAN MST_ULINK LT_ID = 1
+//				        	PremiumValidationProfile profile_premi_pokok = services.selectPremiPokok(reg_spaj);
 				        	
 				        	param.put("MIN_PREMIPOKOK_PERSEN", lstProdsetCalc.getMin_premipokok_persen() != null ? lstProdsetCalc.getMin_premipokok_persen().toString() : null);
 				        	param.put("VALIDASI_MIN_PREMI", lstProdsetCalc.getMin_premium() != null ? lstProdsetCalc.getMin_premium().toString() : null);
 				        	
 				        	minPremiPokok = hasilHitungQueryProdsetForm(param, lstProdsetCalc.getLpf_id_min_premipokok().toString());
 				        	
-				        	if (profile_premi_pokok.getMu_jlh_premi().compareTo(minPremiPokok) < 0) {
+				        	//YANG MENGGUNAKAN MST_ULINK LT_ID = 1
+//				        	if (profile_premi_pokok.getMu_jlh_premi().compareTo(minPremiPokok) < 0) {
+//				                result = false;
+//				            }
+				        	
+				        	if (profile.getMspr_premium().compareTo(minPremiPokok) < 0) {
 				                result = false;
 				            }
 				        }
