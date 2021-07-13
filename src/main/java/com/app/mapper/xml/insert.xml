@@ -106,7 +106,7 @@
 		#{lspc_form_id, jdbcType=INTEGER},
 		#{mspc_form_hist_primary_att, jdbcType=VARCHAR},
 		#{mspc_form_hist_time_started, jdbcType=DATE},
-		#{mspc_form_hist_time_finished, jdbcType=DATE},
+		SYSDATE,
 		SYSDATE,
 		#{mspc_form_hist_created_by, jdbcType=INTEGER},
 		#{mspc_form_hist_result, jdbcType=VARCHAR},

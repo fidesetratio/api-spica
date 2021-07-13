@@ -56,9 +56,6 @@ public class SpicaKafkaController {
 	
 	@KafkaListener(topics = "SPICAUAT", groupId = "uatspica2")
 	public void EvaluateForm(String message) {
-		//set time started
-		Date time_started = new Date();
-
 		String field_name = null;
 		String select_command = null;
 		Boolean clean = true;
@@ -85,6 +82,9 @@ public class SpicaKafkaController {
 		try {
 			
 			logger.info("SPICA started (" + primary_attribute +")");
+			
+			//set time started
+			Date time_started = services.selectSysdate();
 			
 			Integer mspc_form_hist_process_number = services.selectMaxFormHistProcessNumber(primary_attribute.toString());
 			
