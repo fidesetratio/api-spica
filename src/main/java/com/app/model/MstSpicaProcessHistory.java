@@ -10,7 +10,7 @@ public class MstSpicaProcessHistory implements Serializable {
 	 */
 	private static final long serialVersionUID = 2313590621248481712L;
 	
-	private Integer no_temp;
+	private String no_temp;
 	private String reg_spaj;
 	private String app_name;
 	private String process_name;
@@ -19,10 +19,10 @@ public class MstSpicaProcessHistory implements Serializable {
 	private Integer process_number;
 	private Date created_date;
 	
-	public Integer getNo_temp() {
+	public String getNo_temp() {
 		return no_temp;
 	}
-	public void setNo_temp(Integer no_temp) {
+	public void setNo_temp(String no_temp) {
 		this.no_temp = no_temp;
 	}
 	public String getReg_spaj() {

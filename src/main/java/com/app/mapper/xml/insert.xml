@@ -383,7 +383,7 @@
 		(NO_TEMP, REG_SPAJ, APP_NAME, PROCESS_NAME, DESCRIPTION, ERROR_MESSAGE, PROCESS_NUMBER, CREATED_DATE)
 		VALUES
 		(
-		#{no_temp, jdbcType=INTEGER},
+		#{no_temp, jdbcType=VARCHAR},
 		#{reg_spaj, jdbcType=VARCHAR},
 		#{app_name, jdbcType=VARCHAR},
 		#{process_name, jdbcType=VARCHAR},

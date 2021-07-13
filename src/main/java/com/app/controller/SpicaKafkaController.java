@@ -54,7 +54,7 @@ public class SpicaKafkaController {
 	
 	private static Logger logger = Logger.getLogger(SpicaKafkaController.class);
 	
-	@KafkaListener(topics = "SPICAUAT", groupId = "uatspica2")
+	@KafkaListener(topics = "SPICAUAT", groupId = "uatspica3")
 	public void EvaluateForm(String message) {
 		String field_name = null;
 		String select_command = null;
@@ -62,7 +62,7 @@ public class SpicaKafkaController {
 		String spica_result = null;
 		String error_message = null;
 		Integer process_number = null;
-		Integer no_temp = null;
+		String no_temp = "";
 		
 		HashMap<String, Object> fieldAndVariable = new HashMap<String, Object>();
 		HashMap<String, Object> field = new HashMap<String, Object>();
@@ -73,8 +73,8 @@ public class SpicaKafkaController {
 		JSONObject spicaKafka = new JSONObject(message);
 		
 		Integer form_id = spicaKafka.getInt("form_id");
-		if(spicaKafka.get("no_temp") != null || spicaKafka.get("no_temp") != "") {
-			no_temp = spicaKafka.getInt("no_temp");
+		if(spicaKafka.get("no_temp") != "") {
+			no_temp = spicaKafka.get("no_temp").toString();
 		}
 		String app_name = spicaKafka.getString("app_name");
 		String process_name = "SPICA";

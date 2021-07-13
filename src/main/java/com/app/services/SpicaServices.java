@@ -401,7 +401,7 @@ public class SpicaServices {
 		dao.insertMstTransHistory(map);
 	}
 	
-	public void insertSpicaProcessHistory(Integer no_temp, String reg_spaj, String app_name,
+	public void insertSpicaProcessHistory(String no_temp, String reg_spaj, String app_name,
 			String process_name, String description, String error_message, Integer process_number) {
 		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
 		
