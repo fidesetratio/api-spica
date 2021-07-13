@@ -86,8 +86,7 @@
 	UPDATE EKA.MST_INSURED
 		SET LSPD_ID = #{lspd_id, jdbcType=INTEGER},
 		LSSA_ID = #{lssa_id, jdbcType=INTEGER},
-		FLAG_SPEEDY = #{flag_speedy, jdbcType=INTEGER},
-		FLAG_QA = #{flag_qa, jdbcType=INTEGER}
+		FLAG_SPEEDY = #{flag_speedy, jdbcType=INTEGER}
 		WHERE REG_SPAJ = #{reg_spaj, jdbcType=VARCHAR}
 	</update>
 	

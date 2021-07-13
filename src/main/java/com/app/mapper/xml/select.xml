@@ -262,7 +262,7 @@
 	</select>
 	
 	<select id="selectRiderAgeValidation" parameterType="com.app.model.LstProdset" resultType="com.app.model.LstProdset">	 		
-	 	SELECT HOLDER_AGE_FROM, HOLDER_AGE_TO, INSURED_AGE_FROM, INSURED_AGE_TO, INSURED_AGE_FROM_FLAG, FLAG_ULINK
+	 	SELECT HOLDER_AGE_FROM, HOLDER_AGE_TO, INSURED_AGE_FROM, INSURED_AGE_TO, INSURED_AGE_FROM_FLAG, FLAG_ULINK, FLAG_COVER_PP, FLAG_COVER_TU, FLAG_COVER_TT
         	FROM EKA.LST_PRODSET
         	WHERE FLAG_ACTIVE = 1
         	and PSET_ID =
@@ -518,7 +518,7 @@
 	</select>
 	
 	<select id="selectProductPremiumValidation" parameterType="string" resultType="com.app.model.PremiumValidationProfile">	 		
-	 	SELECT B.MSTE_AGE, C.LSBS_ID, C.LSDBS_NUMBER, C.LKU_ID, C.MSPR_TSI, C.MSPR_PREMIUM, D.LSCB_KALI, D.LSCB_KALI_OLD
+		SELECT B.MSTE_AGE, C.LSBS_ID, C.LSDBS_NUMBER, C.LKU_ID, C.MSPR_TSI, C.MSPR_PREMIUM, D.LSCB_KALI, D.LSCB_KALI_OLD, D.LSCB_KALI_FACTOR_TIGA, D.LSCB_KALI_FACTOR_EMPAT
 			FROM EKA.MST_POLICY A
 			LEFT JOIN EKA.MST_INSURED B ON B.REG_SPAJ = A.REG_SPAJ
 			LEFT JOIN EKA.MST_PRODUCT_INSURED C ON C.REG_SPAJ = A.REG_SPAJ
@@ -1274,7 +1274,7 @@
     	select nvl(mspo_jenis_terbit, 0) as MSPO_JENIS_TERBIT from eka.mst_policy where reg_spaj = #{value, jdbcType=VARCHAR}
     </select>
     
-    <select id="selectValidasiAutodebetPremiPertama" parameterType="string" resultType="java.util.HashMap">
+    <select id="selectValidasiAutodebetPremiPertama" parameterType="string" resultType="string">
     	SELECT REG_SPAJ
     		FROM EKA.MST_LOG_AUTODEBET
     		WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}
@@ -1536,6 +1536,28 @@
 			FROM EKA.MST_BIAYA_ULINK
 			WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}
 			AND MU_KE = 2
+	</select>
+	
+	<select id="selectRekeningBeneficiary" parameterType="string" resultType="com.app.model.RekeningBeneficiary">	 		
+	 	SELECT A.MRC_NAMA, A.MRC_NO_AC, B.KODE_BANK
+			FROM EKA.MST_REK_CLIENT A
+			INNER JOIN EKA.LST_BANK_PUSAT B ON B.LSBP_ID = A.LSBP_ID
+			WHERE A.REG_SPAJ = #{value, jdbcType=VARCHAR} 
+	</select>
+	
+	<select id="selectRekeningPayor" parameterType="string" resultType="com.app.model.RekeningPayor">	 		
+	 	SELECT A.MAR_HOLDER, A.MAR_ACC_NO, C.KODE_BANK, D.MSTE_FLAG_CC
+			FROM EKA.MST_ACCOUNT_RECUR A
+			INNER JOIN EKA.LST_BANK B ON B.LBN_ID = A.LBN_ID
+			INNER JOIN EKA.LST_BANK_PUSAT C ON C.LSBP_ID = B.LSBP_ID
+			INNER JOIN EKA.MST_INSURED D ON D.REG_SPAJ = A.REG_SPAJ
+			WHERE A.REG_SPAJ = #{value, jdbcType=VARCHAR} 
+	</select>
+	
+	<select id="selectMstRekeningCustomer" parameterType="string" resultType="com.app.model.MstRekeningCustomer">	 		
+	 	SELECT LSBP_ID, MRC_NO_ACC, MRC_ATAS_NAMA
+			FROM EKA.MST_REKENING_CUSTOMER
+			WHERE MRC_NO_ACC = #{value, jdbcType=VARCHAR}
 	</select>
 
 </mapper>

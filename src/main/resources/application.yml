@@ -23,10 +23,11 @@ spring:
   profiles: dev
   logging:
   level:
-    root: ERROR
-    org.springframework.web: ERROR
-    com.app: DEBUG
-  com.app.mapper.dao: DEBUG
+    com.app.mapper.dao.SpicaDAO: DEBUG
+    com.app.controller.SpicaController: DEBUG
+    com.app.controller.SpicaKafkaController: DEBUG
+    com.app.utility.PF: DEBUG
+    org.springframework: ERROR
   datasource:
     driverClassName: oracle.jdbc.driver.OracleDriver
     #url: jdbc:oracle:thin:@128.21.30.20:1522:ajsdb #ajsmuat
@@ -56,6 +57,7 @@ eureka:
 spring:
   profiles: uatprod
   logging:
+   path: /opt/logs
    pattern:
    console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}]){yellow} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
   datasource:
@@ -83,6 +85,10 @@ eureka:
       defaultZone: http://eureka-0.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-1.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-2.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-3.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-4.eureka.cosmos.svc.cluster.local:8080/eureka,http://eureka-5.eureka.cosmos.svc.cluster.local:8080/eureka
 logging:
   level:
+    com.app.mapper.dao.SpicaDAO: DEBUG
+    com.app.controller.SpicaController: DEBUG
+    com.app.controller.SpicaKafkaController: DEBUG
+    com.app.utility.PF: DEBUG
     org.springframework: ERROR
 
 ---

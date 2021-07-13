@@ -378,5 +378,21 @@
             )
 	</insert>
 	
+	<insert id="insertSpicaProcessHistory" parameterType="com.app.model.MstSpicaProcessHistory">
+	INSERT INTO EKA.MST_SPICA_PROCESS_HISTORY
+		(NO_TEMP, REG_SPAJ, APP_NAME, PROCESS_NAME, DESCRIPTION, ERROR_MESSAGE, PROCESS_NUMBER, CREATED_DATE)
+		VALUES
+		(
+		#{no_temp, jdbcType=INTEGER},
+		#{reg_spaj, jdbcType=VARCHAR},
+		#{app_name, jdbcType=VARCHAR},
+		#{process_name, jdbcType=VARCHAR},
+		#{description, jdbcType=VARCHAR},
+		#{error_message, jdbcType=VARCHAR},
+		#{process_number, jdbcType=INTEGER},
+		SYSDATE
+		)
+	</insert>
+	
 	
 </mapper>

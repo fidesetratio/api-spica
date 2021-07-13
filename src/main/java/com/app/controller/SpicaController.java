@@ -87,7 +87,7 @@ public class SpicaController {
 	    	Date newDate = simpleDateFormat.parse("1987-07-06");
 			
 			map.put("nik", "3173044607870002");
-			map.put("regSpaj", "37202147385");
+			map.put("regSpaj", "37202147414");
 			map.put("date", newDate);
 			map.put("booleanResult", true);
 			map.put("mcl_id", "002100014972");
@@ -104,7 +104,7 @@ public class SpicaController {
 			map.put("no_account", "0053061206");
 			map.put("email", "agoenk_reser@yahoo.com");
 			
-			Object value = utils.execute("ProductPremiumValidation(regSpaj)", map);
+			Object value = utils.execute("BankInquiry(regSpaj,threshold_fuzzy)", map);
 			
 			//spajDocumentStatusProcess("09210547075", 0);
 			
@@ -3390,6 +3390,7 @@ public class SpicaController {
 			//SELECT STATUS DOCUMENT
 			DocumentStatus document_status = services.selectDocumentStatusStatic(reg_spaj);
 			
+			//PROSES CLEAN & UNCLEAN KE 1 LSPD_ID
 			//IF SPICA CLEAN & TIDAK AUTODEBET
 			if(clean == 1) {
 				lspd_id = 218;
@@ -3397,41 +3398,41 @@ public class SpicaController {
 				lssa_id = 17;
 				flag_speedy = 1;
 				flag_qa = 0;
-				description = "SPICA CLEAN";
+				description = "TRANSFER KE QA (SPICA CLEAN)";
 				
 				//UPDATE LSPD ID IN MST_POLICY
 				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
 				
 				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
-				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy);
 				
 				//INSERT INTO MST POSITION SPAJ
 				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id,lssa_id, 0, description);
 				
 				
-				//PROSES TRANSFER RECURRING AUTODEBET PREMI PERTAMA
+				//CEK VALIDASI AUTODEBET PREMI PERTAMA, JIKA IYA MAKA TRANSFER RECUR
 				String reg_spaj_not_valid = services.selectValidasiAutodebetPremiPertama(reg_spaj);
 				
 				if(reg_spaj_not_valid == null) {
 					autodebetServices.prosesAutoDebetNB(reg_spaj, 0, lspd_id, lssp_id, lssa_id);
-					logger.info("SPAJ TRANSFERRED AUTODEBET PROCESSED TO FINANCE ("+ reg_spaj +")");
+					logger.info("SPAJ TRANSFERRED TO FINANCE FOR AUTODEBET PROCESS ("+ reg_spaj +")");
 				}
 				logger.info("SPAJ CLEAN ("+ reg_spaj +")");
 			}
 			//IF SPICA UNCLEAN
 			else if(clean == 0) {
-				lspd_id = 2;
+				lspd_id = 218;
 				lssp_id = document_status.getLssp_id();
 				lssa_id = 17;
 				flag_speedy = 0;
 				flag_qa = 0;
-				description = "TRANSFER KE UNDERWRITING (SPICA UNCLEAN)";
+				description = "TRANSFER KE QA (SPICA UNCLEAN)";
 				
 				//UPDATE LSPD ID IN MST_POLICY
 				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
 				
 				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
-				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy);
 				
 				//INSERT INTO MST POSITION SPAJ
 				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id, lssa_id, 0, description);
@@ -3439,6 +3440,56 @@ public class SpicaController {
 				logger.info("SPAJ UNCLEAN ("+ reg_spaj +")");
 	
 			}
+			
+//			//IF SPICA CLEAN & TIDAK AUTODEBET
+//			if(clean == 1) {
+//				lspd_id = 218;
+//				lssp_id = document_status.getLssp_id();
+//				lssa_id = 17;
+//				flag_speedy = 1;
+//				flag_qa = 0;
+//				description = "SPICA CLEAN";
+//				
+//				//UPDATE LSPD ID IN MST_POLICY
+//				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
+//				
+//				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
+//				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+//				
+//				//INSERT INTO MST POSITION SPAJ
+//				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id,lssa_id, 0, description);
+//				
+//				
+//				//PROSES TRANSFER RECURRING AUTODEBET PREMI PERTAMA
+//				String reg_spaj_not_valid = services.selectValidasiAutodebetPremiPertama(reg_spaj);
+//				
+//				if(reg_spaj_not_valid == null) {
+//					autodebetServices.prosesAutoDebetNB(reg_spaj, 0, lspd_id, lssp_id, lssa_id);
+//					logger.info("SPAJ TRANSFERRED AUTODEBET PROCESSED TO FINANCE ("+ reg_spaj +")");
+//				}
+//				logger.info("SPAJ CLEAN ("+ reg_spaj +")");
+//			}
+//			//IF SPICA UNCLEAN
+//			else if(clean == 0) {
+//				lspd_id = 2;
+//				lssp_id = document_status.getLssp_id();
+//				lssa_id = 17;
+//				flag_speedy = 0;
+//				flag_qa = 0;
+//				description = "TRANSFER KE UNDERWRITING (SPICA UNCLEAN)";
+//				
+//				//UPDATE LSPD ID IN MST_POLICY
+//				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
+//				
+//				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
+//				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+//				
+//				//INSERT INTO MST POSITION SPAJ
+//				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id, lssa_id, 0, description);
+//				
+//				logger.info("SPAJ UNCLEAN ("+ reg_spaj +")");
+//	
+//			}
 		} catch (Exception e) {
 			logger.info(e);
 		}

@@ -75,6 +75,9 @@ public class SpicaKafkaController {
 		JSONObject spicaKafka = new JSONObject(message);
 		
 		Integer form_id = spicaKafka.getInt("form_id");
+		Integer no_temp = spicaKafka.getInt("no_temp");
+		String app_name = spicaKafka.getString("app_name");
+		String process_name = "SPICA";
 		Object primary_attribute = spicaKafka.get("reg_spaj");
 		Integer user_id = 0;
 		Integer evaluate_type = 2;
@@ -488,6 +491,9 @@ public class SpicaKafkaController {
 									//insert into form history
 									services.insertMstSpicaFormHistory(form_id, primary_attribute.toString(), time_started, new Date(), user_id, spica_result, process_number);
 									
+									//insert into spica process history
+									services.insertSpicaProcessHistory(no_temp, primary_attribute.toString(), app_name, process_name, "SPICA processed successfully", null, process_number);
+									
 									//call workflow engine
 									//callSpicaWorfklowEngine(primary_attribute, clean, user_id);
 								
@@ -792,6 +798,9 @@ public class SpicaKafkaController {
 									
 									//insert into form history
 									services.insertMstSpicaFormHistory(form_id, primary_attribute.toString(), time_started, new Date(), user_id, spica_result, process_number);
+									
+									//insert into spica process history
+									services.insertSpicaProcessHistory(no_temp, primary_attribute.toString(), app_name, process_name, "SPICA processed successfully", null, process_number);
 									
 									//call workflow engine
 									//callSpicaWorfklowEngine(primary_attribute, clean, user_id);
@@ -1386,6 +1395,9 @@ public class SpicaKafkaController {
 								//insert into form history
 								services.insertMstSpicaFormHistory(form_id, primary_attribute.toString(), time_started, new Date(), user_id, spica_result, process_number);
 								
+								//insert into spica process history
+								services.insertSpicaProcessHistory(no_temp, primary_attribute.toString(), app_name, process_name, "SPICA processed successfully", null, process_number);
+								
 								//call workflow engine
 								//callSpicaWorfklowEngine(primary_attribute, clean, user_id);
 							
@@ -1861,6 +1873,9 @@ public class SpicaKafkaController {
 								//insert into form history
 								services.insertMstSpicaFormHistory(form_id, primary_attribute.toString(), time_started, new Date(), user_id, spica_result, process_number);
 								
+								//insert into spica process history
+								services.insertSpicaProcessHistory(no_temp, primary_attribute.toString(), app_name, process_name, "SPICA processed successfully", null, process_number);
+								
 								//call workflow engine
 								//callSpicaWorfklowEngine(primary_attribute, clean, user_id);
 							
@@ -1883,6 +1898,9 @@ public class SpicaKafkaController {
 		} catch (Exception e) {;
 			error_message = "Evaluate form error: " + e;
 			logger.error(error_message);
+			
+			//insert into spica process history
+			services.insertSpicaProcessHistory(no_temp, primary_attribute.toString(), app_name, process_name, "SPICA process error", error_message, null);
 		}
 	
 	}
@@ -1970,6 +1988,7 @@ public class SpicaKafkaController {
 			//SELECT STATUS DOCUMENT
 			DocumentStatus document_status = services.selectDocumentStatusStatic(reg_spaj);
 			
+			//PROSES CLEAN & UNCLEAN KE 1 LSPD_ID
 			//IF SPICA CLEAN & TIDAK AUTODEBET
 			if(clean == 1) {
 				lspd_id = 218;
@@ -1977,19 +1996,19 @@ public class SpicaKafkaController {
 				lssa_id = 17;
 				flag_speedy = 1;
 				flag_qa = 0;
-				description = "SPICA CLEAN";
+				description = "TRANSFER KE QA (SPICA CLEAN)";
 				
 				//UPDATE LSPD ID IN MST_POLICY
 				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
 				
 				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
-				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy);
 				
 				//INSERT INTO MST POSITION SPAJ
 				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id,lssa_id, 0, description);
 				
 				
-				//PROSES TRANSFER RECURRING AUTODEBET PREMI PERTAMA
+				//CEK VALIDASI AUTODEBET PREMI PERTAMA, JIKA IYA MAKA TRANSFER RECUR
 				String reg_spaj_not_valid = services.selectValidasiAutodebetPremiPertama(reg_spaj);
 				
 				if(reg_spaj_not_valid == null) {
@@ -2000,18 +2019,18 @@ public class SpicaKafkaController {
 			}
 			//IF SPICA UNCLEAN
 			else if(clean == 0) {
-				lspd_id = 2;
+				lspd_id = 218;
 				lssp_id = document_status.getLssp_id();
 				lssa_id = 17;
 				flag_speedy = 0;
 				flag_qa = 0;
-				description = "TRANSFER KE UNDERWRITING (SPICA UNCLEAN)";
+				description = "TRANSFER KE QA (SPICA UNCLEAN)";
 				
 				//UPDATE LSPD ID IN MST_POLICY
 				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
 				
 				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
-				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy);
 				
 				//INSERT INTO MST POSITION SPAJ
 				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id, lssa_id, 0, description);
@@ -2019,6 +2038,57 @@ public class SpicaKafkaController {
 				logger.info("SPAJ UNCLEAN ("+ reg_spaj +")");
 	
 			}
+			
+			
+//			//IF SPICA CLEAN & TIDAK AUTODEBET
+//			if(clean == 1) {
+//				lspd_id = 218;
+//				lssp_id = document_status.getLssp_id();
+//				lssa_id = 17;
+//				flag_speedy = 1;
+//				flag_qa = 0;
+//				description = "SPICA CLEAN";
+//				
+//				//UPDATE LSPD ID IN MST_POLICY
+//				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
+//				
+//				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
+//				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+//				
+//				//INSERT INTO MST POSITION SPAJ
+//				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id,lssa_id, 0, description);
+//				
+//				
+//				//PROSES TRANSFER RECURRING AUTODEBET PREMI PERTAMA
+//				String reg_spaj_not_valid = services.selectValidasiAutodebetPremiPertama(reg_spaj);
+//				
+//				if(reg_spaj_not_valid == null) {
+//					autodebetServices.prosesAutoDebetNB(reg_spaj, 0, lspd_id, lssp_id, lssa_id);
+//					logger.info("SPAJ TRANSFERRED TO FINANCE FOR AUTODEBET PROCESS ("+ reg_spaj +")");
+//				}
+//				logger.info("SPAJ CLEAN ("+ reg_spaj +")");
+//			}
+//			//IF SPICA UNCLEAN
+//			else if(clean == 0) {
+//				lspd_id = 2;
+//				lssp_id = document_status.getLssp_id();
+//				lssa_id = 17;
+//				flag_speedy = 0;
+//				flag_qa = 0;
+//				description = "TRANSFER KE UNDERWRITING (SPICA UNCLEAN)";
+//				
+//				//UPDATE LSPD ID IN MST_POLICY
+//				services.updateMstPolicyLspdId(reg_spaj, lspd_id);
+//				
+//				//UPDATE LSPD ID, LSSA ID, FLAG SPEEDY & FLAG QA IN MST_INSURED
+//				services.updateMstInsured(reg_spaj, lspd_id, lssa_id, flag_speedy, flag_qa);
+//				
+//				//INSERT INTO MST POSITION SPAJ
+//				services.insertMstPositionSpaj(reg_spaj, lspd_id, lssp_id, lssa_id, 0, description);
+//				
+//				logger.info("SPAJ UNCLEAN ("+ reg_spaj +")");
+//	
+//			}
 		} catch (Exception e) {
 			logger.info(e);
 		}

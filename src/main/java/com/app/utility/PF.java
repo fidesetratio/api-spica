@@ -22,6 +22,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
+import org.jboss.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Hours;
@@ -45,6 +46,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.app.constant.SpicaCons;
+import com.app.controller.SpicaController;
 import com.app.model.AgentValidationProfile;
 import com.app.model.BeneficiaryRelationValidProfile;
 import com.app.model.DocumentStatus;
@@ -60,10 +62,13 @@ import com.app.model.LstValidationAgeParticipant;
 import com.app.model.MedicalTableProfile;
 import com.app.model.MstPeserta;
 import com.app.model.MstProductInsured;
+import com.app.model.MstRekeningCustomer;
 import com.app.model.ParticipantValidationProfile;
 import com.app.model.PeriodValidationProfile;
 import com.app.model.PremiumValidationProfile;
 import com.app.model.ProductAgeValidationProfile;
+import com.app.model.RekeningBeneficiary;
+import com.app.model.RekeningPayor;
 import com.app.model.SumInsuredValidationProfile;
 import com.app.model.TopUpSingleValidationProfile;
 import com.app.request.HouseInquiryRequest;
@@ -97,6 +102,8 @@ public class PF {
 		 PF.dukcapilUrl = urlDukcapil;
 		 PF.dukcapilToken = tokenDukcapil;
 	 }
+	 
+	 private static Logger logger = Logger.getLogger(PF.class);
 	
 	public static String NumberToText(Integer number) {
 		
@@ -1689,65 +1696,205 @@ public class PF {
 		return result;
 	}
 	
-	public static Boolean BankInquiry(String account_name, String account_number, String bank_code, Integer thresholdFuzzy) throws Exception {
+	public static Boolean BankInquiry(String reg_spaj, Integer thresholdFuzzy) throws Exception {
 		
-		Boolean result = null;
+		Boolean result = true;
 		
-		if(account_name != null && account_name != "" && account_number != null && account_number != "" && bank_code != null && bank_code != "" && 
-				thresholdFuzzy != null) {
-			    
-			//CHECK IF BANK CODE IS BNI
-			if(bank_code.equalsIgnoreCase("009") || bank_code.equalsIgnoreCase("427")) {
+		if(reg_spaj != null && reg_spaj != "" && thresholdFuzzy != null) {
+			SpicaServices services = new SpicaServices();
+			
+			RekeningBeneficiary rekeningBenef = services.selectRekeningBeneficiary(reg_spaj);
+			RekeningPayor rekeningPayor = services.selectRekeningPayor(reg_spaj);
+			
+			//CHECK JIKA NO REK BENEFICIARY & PAYOR SAMA, JIKA SAMA MAKA CEK SEKALI SAJA
+			if(rekeningPayor.getMar_acc_no().equals(rekeningBenef.getMrc_no_ac())) {
 				
-				ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(account_number);
+				//CHECK DULU KE TABLE TAMPUNGAN
+				MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningPayor.getMar_acc_no());
 				
-				if(inhouseInquiryResult.getStatusCodeValue() == 200) {
-				
-					JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
+				//CHECK JIKA ADA DI TABLE TAMPUNGAN
+				if(mstRekeningCustomer != null) {
 					
-					String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
+					//check name fuzzy
+				    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), mstRekeningCustomer.getMrc_atas_nama());
 					
-					if(account_status.equalsIgnoreCase("BUKA")) {
-						
-						String name_result = jsonResult.getJSONObject("result").getString("customerName");
-						
-						//check name fuzzy
-				    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(account_name, name_result);
-				    	
-				    	if(fuzzyNameResult > thresholdFuzzy) {
-				    		result = true;
-				    	} else {
-				    		result = false;
-				    	}
-					} else {
-						result = false;
-					}
+					if(fuzzyNameResult < thresholdFuzzy) {
+				    	result = false;
+				    	logger.info("ACCOUNT NAME NOT MATCH");
+				    }
 				} else {
-					result = false;
+					//CHECK IF BANK CODE IS BNI
+					if(rekeningPayor.getKode_bank().equals("009") || rekeningPayor.getKode_bank().equals("427")) {
+						
+						ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(rekeningPayor.getMar_acc_no());
+						
+						if(inhouseInquiryResult.getStatusCodeValue() == 200) {
+						
+							JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
+							
+							String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
+								
+							String name_result = jsonResult.getJSONObject("result").getString("customerName");
+								
+							//check name fuzzy
+						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+						    	
+						    if(fuzzyNameResult < thresholdFuzzy) {
+						    	result = false;
+						    	logger.info("ACCOUNT NAME NOT MATCH");
+						    }
+						} else {
+							result = false;
+							logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
+						}
+					 } else {
+						 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningPayor.getMar_acc_no(), rekeningPayor.getKode_bank());
+						 
+						 if(interbankInquiryResult.getStatusCodeValue() == 200) {
+							 
+							 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
+							 
+							 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
+								
+								//check name fuzzy
+						    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+						    	
+						    	if(fuzzyNameResult < thresholdFuzzy) {
+						    		result = false;
+						    		logger.info("ACCOUNT NAME NOT MATCH");
+						    	}
+						 } else {
+							 result = false;
+							 logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
+						 }	
+					 }
+				}
+			} else {
+				//CHECK REKENING PAYOR
+				//CHECK IF PAYOR USING CC FOR PAYMENT
+				if(rekeningPayor.getMste_flag_cc() != 1) {
+					
+					//CHECK DULU KE TABLE TAMPUNGAN
+					MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningPayor.getMar_acc_no());
+					
+					if(mstRekeningCustomer != null) {
+						//check name fuzzy
+					    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), mstRekeningCustomer.getMrc_atas_nama());
+					    	
+					    if(fuzzyNameResult < thresholdFuzzy) {
+					    	result = false;
+					    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+					    }
+					} else {
+						//CHECK IF BANK CODE IS BNI
+						if(rekeningPayor.getKode_bank().equals("009") || rekeningPayor.getKode_bank().equals("427")) {
+							
+							ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(rekeningPayor.getMar_acc_no());
+							
+							if(inhouseInquiryResult.getStatusCodeValue() == 200) {
+							
+								JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
+								
+								String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
+									
+								String name_result = jsonResult.getJSONObject("result").getString("customerName");
+									
+								//check name fuzzy
+							    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+							    	
+							    if(fuzzyNameResult < thresholdFuzzy) {
+							    	result = false;
+							    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+							    }
+							} else {
+								result = false;
+								logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
+							}
+						 } else {
+							 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningPayor.getMar_acc_no(), rekeningPayor.getKode_bank());
+							 
+							 if(interbankInquiryResult.getStatusCodeValue() == 200) {
+								 
+								 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
+								 
+								 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
+									
+									//check name fuzzy
+							    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+							    	
+							    	if(fuzzyNameResult < thresholdFuzzy) {
+							    		result = false;
+							    		logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+							    	}
+							 } else {
+								 result = false;
+								 logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
+							 }	
+						 }
+					}
 				}
 				
-			 } else {
-				 
-				 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(account_number, bank_code);
-				 
-				 if(interbankInquiryResult.getStatusCodeValue() == 200) {
-					 
-					 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
-					 
-					 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
-						
-						//check name fuzzy
-				    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(account_name, name_result);
+				//CHECK REKENING BENEFICIARY
+				
+				//CHECK DULU KE TABLE TAMPUNGAN
+				MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningBenef.getMrc_nama());
+				
+				if(mstRekeningCustomer != null) {
+					//check name fuzzy
+				    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), mstRekeningCustomer.getMrc_atas_nama());
 				    	
-				    	if(fuzzyNameResult > thresholdFuzzy) {
-				    		result = true;
-				    	} else {
-				    		result = false;
-				    	}
-				 } else {
-					 result = false;
-				 }	
-			 }  
+				    if(fuzzyNameResult < thresholdFuzzy) {
+				    	result = false;
+				    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
+				    }
+				} else {
+					//CHECK IF BANK CODE IS BNI
+					if(rekeningBenef.getKode_bank().equals("009") || rekeningBenef.getKode_bank().equals("427")) {
+						
+						ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(rekeningBenef.getMrc_no_ac());
+						
+						if(inhouseInquiryResult.getStatusCodeValue() == 200) {
+						
+							JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
+							
+							String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
+								
+							String name_result = jsonResult.getJSONObject("result").getString("customerName");
+								
+							//check name fuzzy
+						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), name_result);
+						    	
+						    if(fuzzyNameResult < thresholdFuzzy) {
+						    	result = false;
+						    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
+						    }
+						} else {
+							result = false;
+							logger.info("ERROR HIT API BNI OR BENEFICIARY ACCOUNT NUMBER NOT FOUND");
+						}
+					 } else {
+						 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningBenef.getMrc_no_ac(), rekeningBenef.getKode_bank());
+						 
+						 if(interbankInquiryResult.getStatusCodeValue() == 200) {
+							 
+							 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
+							 
+							 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
+								
+								//check name fuzzy
+						    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), name_result);
+						    	
+						    	if(fuzzyNameResult < thresholdFuzzy) {
+						    		result = false;
+						    		logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
+						    	}
+						 } else {
+							 result = false;
+							 logger.info("ERROR HIT API BNI OR BENEFICIARY ACCOUNT NUMBER NOT FOUND");
+						 }	
+					 }
+				}
+			}
 		} else {
 			result = false;
 		}
@@ -2147,27 +2294,35 @@ public class PF {
 					Integer lsbs_id = rider.getLsbs_id();
 					Integer lsdbs_number = rider.getLsdbs_number();
 					
+//					System.out.println(lsbs_id);
+//					System.out.println(lsdbs_number);
+					
 					LstProdset lstProdset = services.selectRiderAgeValidation(lsbs_id, lsdbs_number);
 					
 					if(lstProdset != null) {
-						Calendar calBegDate = Calendar.getInstance();
-				        Calendar calDateBirth = Calendar.getInstance();
-				        calBegDate.setTime(rider.getMspr_beg_date());
-				        calDateBirth.setTime(rider.getMspe_date_birth());
-				        Integer usia = calBegDate.get(Calendar.YEAR) - calDateBirth.get(Calendar.YEAR);
-				        
-				        //PEMBULATAN USIA
-				        if (calBegDate.get(Calendar.MONTH) - calDateBirth.get(Calendar.MONTH) >= 6) {
-				            usia++;
-				        }
-				        
-				        Integer usiaPP = usia;
-				        
-				        if (usiaPP.compareTo(lstProdset.getHolder_age_from()) < 0) {
-				        	result = false;
-				        } else if (usiaPP.compareTo(lstProdset.getHolder_age_to()) > 0) {
-				        	result = false;
-				        }      
+						//JIKA RIDER TIDAK MENG-COVER PP MAKA TIDAK PERLU VALIDASI USIA PP
+						if(lstProdset.getFlag_cover_pp() == 0) {
+							result = true;
+						} else {
+							Calendar calBegDate = Calendar.getInstance();
+					        Calendar calDateBirth = Calendar.getInstance();
+					        calBegDate.setTime(rider.getMspr_beg_date());
+					        calDateBirth.setTime(rider.getMspe_date_birth());
+					        Integer usia = calBegDate.get(Calendar.YEAR) - calDateBirth.get(Calendar.YEAR);
+					        
+					        //PEMBULATAN USIA
+					        if (calBegDate.get(Calendar.MONTH) - calDateBirth.get(Calendar.MONTH) >= 6) {
+					            usia++;
+					        }
+					        
+					        Integer usiaPP = usia;
+					        
+					        if (usiaPP.compareTo(lstProdset.getHolder_age_from()) < 0) {
+					        	result = false;
+					        } else if (usiaPP.compareTo(lstProdset.getHolder_age_to()) > 0) {
+					        	result = false;
+					        } 
+						}
 					} else {
 						result = false;
 					}
@@ -2252,31 +2407,73 @@ public class PF {
 					BigDecimal masaPertanggungan;
 					
 					if(lstProdset.getInsured_period_flag() == 1) {
-						masaPertanggungan = lstProdset.getInsured_period();
+						if(lstProdset.getInsured_period() != null) {
+							masaPertanggungan = lstProdset.getInsured_period();
+							
+							Calendar calendarMsprEndDate = Calendar.getInstance();
+							calendarMsprEndDate.setTime(profile.getMspr_end_date());
+							
+							Calendar calendarEndDate = Calendar.getInstance();
+							calendarEndDate.setTime(profile.getMspr_beg_date());
+							calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
+					        calendarEndDate.add(Calendar.DATE, -1);
+					        
+	//				        System.out.println(calendarMsprEndDate.getTime());
+	//				        System.out.println(calendarEndDate.getTime());
+					        
+					        if(calendarEndDate.compareTo(calendarMsprEndDate) == 0) {
+					        	result = true;
+					        } else {
+					        	result = false;
+					        }
+						} else {
+							result = true;
+						}
 					} else {
-						Map param = new HashMap();
-						param.put("insured_period", lstProdset.getInsured_period().toString());
-						param.put("umur_tt", profile.getMste_age().toString());
-			            
-			            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+						if(lstProdset.getInsured_period() != null) {
+							Map param = new HashMap();
+							param.put("insured_period", lstProdset.getInsured_period().toString());
+							param.put("umur_tt", profile.getMste_age().toString());
+				            
+				            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+				            
+				            Calendar calendarMsprEndDate = Calendar.getInstance();
+							calendarMsprEndDate.setTime(profile.getMspr_end_date());
+							
+							Calendar calendarEndDate = Calendar.getInstance();
+							calendarEndDate.setTime(profile.getMspr_beg_date());
+							calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
+					        calendarEndDate.add(Calendar.DATE, -1);
+					        
+	//				        System.out.println(calendarMsprEndDate.getTime());
+	//				        System.out.println(calendarEndDate.getTime());
+					        
+					        if(calendarEndDate.compareTo(calendarMsprEndDate) == 0) {
+					        	result = true;
+					        } else {
+					        	result = false;
+					        }
+						} else {
+							result = true;
+						}
 					}
 					
-					Calendar calendarMsprEndDate = Calendar.getInstance();
-					calendarMsprEndDate.setTime(profile.getMspr_end_date());
-					
-					Calendar calendarEndDate = Calendar.getInstance();
-					calendarEndDate.setTime(profile.getMspr_beg_date());
-					calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
-			        calendarEndDate.add(Calendar.DATE, -1);
-			        
-//			        System.out.println(calendarMsprEndDate.getTime());
-//			        System.out.println(calendarEndDate.getTime());
-			        
-			        if(calendarEndDate.compareTo(calendarMsprEndDate) == 0) {
-			        	result = true;
-			        } else {
-			        	result = false;
-			        }
+//					Calendar calendarMsprEndDate = Calendar.getInstance();
+//					calendarMsprEndDate.setTime(profile.getMspr_end_date());
+//					
+//					Calendar calendarEndDate = Calendar.getInstance();
+//					calendarEndDate.setTime(profile.getMspr_beg_date());
+//					calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
+//			        calendarEndDate.add(Calendar.DATE, -1);
+//			        
+////			        System.out.println(calendarMsprEndDate.getTime());
+////			        System.out.println(calendarEndDate.getTime());
+//			        
+//			        if(calendarEndDate.compareTo(calendarMsprEndDate) == 0) {
+//			        	result = true;
+//			        } else {
+//			        	result = false;
+//			        }
 				} else {
 					result = false;
 				}
@@ -2320,23 +2517,43 @@ public class PF {
 					
 					
 					if(lstProdset.getInsured_period_flag() == 1) {
-						masaPertanggungan = lstProdset.getInsured_period();
+						if(lstProdset.getInsured_period() != null) {
+							masaPertanggungan = lstProdset.getInsured_period();
+							
+							if(profile.getMspr_ins_period() == Integer.parseInt(masaPertanggungan.toString())) {
+								result = true;
+							} else {
+								result = false;
+							}
+						} else {
+							result = true;
+						}
 					} else {
-						Map param = new HashMap();
-						param.put("insured_period", lstProdset.getInsured_period().toString());
-						param.put("umur_tt", profile.getMste_age().toString());
-			            
-			            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+						if(lstProdset.getInsured_period() != null) {
+							Map param = new HashMap();
+							param.put("insured_period", lstProdset.getInsured_period().toString());
+							param.put("umur_tt", profile.getMste_age().toString());
+				            
+				            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+				            
+				            if(profile.getMspr_ins_period() == Integer.parseInt(masaPertanggungan.toString())) {
+								result = true;
+							} else {
+								result = false;
+							}
+						} else {
+							result = true;
+						}
 					}
 					
 //					System.out.println(Integer.parseInt(masaPertanggungan.toString()));
 //					System.out.println(profile.getMspr_ins_period());
 					
-					if(profile.getMspr_ins_period() == Integer.parseInt(masaPertanggungan.toString())) {
-						result = true;
-					} else {
-						result = false;
-					}
+//					if(profile.getMspr_ins_period() == Integer.parseInt(masaPertanggungan.toString())) {
+//						result = true;
+//					} else {
+//						result = false;
+//					}
 				} else {
 					result = false;
 				}
@@ -2371,29 +2588,70 @@ public class PF {
 					Integer masaBayar;
 					
 					if(lstProdset.getInsured_period_flag() == 1) {
-						masaPertanggungan = lstProdset.getInsured_period();
+						if(lstProdset.getInsured_period() != null && lstProdset.getPay_period_flag() != null && lstProdset.getPay_period() != null) {
+							masaPertanggungan = lstProdset.getInsured_period();
+							
+							if(lstProdset.getPay_period_flag() == 1) {
+								masaBayar = lstProdset.getPay_period();
+							} else {
+								masaBayar = Integer.parseInt(masaPertanggungan.toString());
+							}
+							
+	//						System.out.println(masaPertanggungan);
+	//						System.out.println(profile.getMspo_pay_period());
+	//						System.out.println(masaBayar);
+							
+							if(profile.getMspo_pay_period() == masaBayar) {
+								result = true;
+							} else {
+								result = false;
+							}
+						} else {
+							result = true;
+						}
 					} else {
-						Map param = new HashMap();
-						param.put("insured_period", lstProdset.getInsured_period());
-						param.put("umur_tt", profile.getMste_age());
-			            
-			            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+						if(lstProdset.getInsured_period() != null && lstProdset.getPay_period_flag() != null && lstProdset.getPay_period() != null) {
+							Map param = new HashMap();
+							param.put("insured_period", lstProdset.getInsured_period());
+							param.put("umur_tt", profile.getMste_age());
+				            
+				            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+				            
+				            if(lstProdset.getPay_period_flag() == 1) {
+								masaBayar = lstProdset.getPay_period();
+							} else {
+								masaBayar = Integer.parseInt(masaPertanggungan.toString());
+							}
+							
+	//						System.out.println(masaPertanggungan);
+	//						System.out.println(profile.getMspo_pay_period());
+	//						System.out.println(masaBayar);
+							
+							if(profile.getMspo_pay_period() == masaBayar) {
+								result = true;
+							} else {
+								result = false;
+							}
+						} else {
+							result = true;
+						}
 					}
 					
-					if(lstProdset.getPay_period_flag() == 1) {
-						masaBayar = lstProdset.getPay_period();
-					} else {
-						masaBayar = Integer.parseInt(masaPertanggungan.toString());
-					}
-					
-//					System.out.println(profile.getMspo_pay_period());
-//					System.out.println(masaBayar);
-					
-					if(profile.getMspo_pay_period() == masaBayar) {
-						result = true;
-					} else {
-						result = false;
-					}
+//					if(lstProdset.getPay_period_flag() == 1) {
+//						masaBayar = lstProdset.getPay_period();
+//					} else {
+//						masaBayar = Integer.parseInt(masaPertanggungan.toString());
+//					}
+//					
+////					System.out.println(masaPertanggungan);
+////					System.out.println(profile.getMspo_pay_period());
+////					System.out.println(masaBayar);
+//					
+//					if(profile.getMspo_pay_period() == masaBayar) {
+//						result = true;
+//					} else {
+//						result = false;
+//					}
 				} else {
 					result = false;
 				}
@@ -2477,26 +2735,54 @@ public class PF {
 						BigDecimal masaPertanggungan;
 						
 						if(lstProdset.getInsured_period_flag() == 1) {
-							masaPertanggungan = lstProdset.getInsured_period();
+							if(lstProdset.getInsured_period() != null) {
+								masaPertanggungan = lstProdset.getInsured_period();
+								
+								Calendar calendarMsprEndDate = Calendar.getInstance();
+								calendarMsprEndDate.setTime(rider.getMspr_end_date());
+								
+								Calendar calendarEndDate = Calendar.getInstance();
+								calendarEndDate.setTime(rider.getMspr_beg_date());
+								calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
+						        calendarEndDate.add(Calendar.DATE, -1);
+						        
+						        if(calendarEndDate.compareTo(calendarMsprEndDate) != 0) {
+						        	result = false;
+						        }
+							}
 						} else {
-							Map param = new HashMap();
-							param.put("insured_period", lstProdset.getInsured_period());
-							param.put("umur_tt", rider.getMste_age());
-				            
-				            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+							if(lstProdset.getInsured_period() != null) {
+								Map param = new HashMap();
+								param.put("insured_period", lstProdset.getInsured_period());
+								param.put("umur_tt", rider.getMste_age());
+					            
+					            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+					            
+					            Calendar calendarMsprEndDate = Calendar.getInstance();
+								calendarMsprEndDate.setTime(rider.getMspr_end_date());
+								
+								Calendar calendarEndDate = Calendar.getInstance();
+								calendarEndDate.setTime(rider.getMspr_beg_date());
+								calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
+						        calendarEndDate.add(Calendar.DATE, -1);
+						        
+						        if(calendarEndDate.compareTo(calendarMsprEndDate) != 0) {
+						        	result = false;
+						        }
+							}
 						}
 						
-						Calendar calendarMsprEndDate = Calendar.getInstance();
-						calendarMsprEndDate.setTime(rider.getMspr_end_date());
-						
-						Calendar calendarEndDate = Calendar.getInstance();
-						calendarEndDate.setTime(rider.getMspr_beg_date());
-						calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
-				        calendarEndDate.add(Calendar.DATE, -1);
-				        
-				        if(calendarEndDate.compareTo(calendarMsprEndDate) != 0) {
-				        	result = false;
-				        }
+//						Calendar calendarMsprEndDate = Calendar.getInstance();
+//						calendarMsprEndDate.setTime(rider.getMspr_end_date());
+//						
+//						Calendar calendarEndDate = Calendar.getInstance();
+//						calendarEndDate.setTime(rider.getMspr_beg_date());
+//						calendarEndDate.add(Calendar.YEAR, Integer.parseInt(masaPertanggungan.toString()));
+//				        calendarEndDate.add(Calendar.DATE, -1);
+//				        
+//				        if(calendarEndDate.compareTo(calendarMsprEndDate) != 0) {
+//				        	result = false;
+//				        }
 					} else {
 						result = false;
 					}
@@ -2531,18 +2817,30 @@ public class PF {
 						BigDecimal masaPertanggungan;
 						
 						if(lstProdset.getInsured_period_flag() == 1) {
-							masaPertanggungan = lstProdset.getInsured_period();
+							if(lstProdset.getInsured_period() != null) {
+								masaPertanggungan = lstProdset.getInsured_period();
+								
+								if(rider.getMspr_ins_period() != Integer.parseInt(masaPertanggungan.toString())) {
+									result = false;
+								}
+							}
 						} else {
-							Map param = new HashMap();
-							param.put("insured_period", lstProdset.getInsured_period());
-							param.put("umur_tt", rider.getMste_age());
-				            
-				            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+							if(lstProdset.getInsured_period() != null) {
+								Map param = new HashMap();
+								param.put("insured_period", lstProdset.getInsured_period());
+								param.put("umur_tt", rider.getMste_age());
+					            
+					            masaPertanggungan = hasilHitungQueryProdsetForm(param, "103");
+					            
+					            if(rider.getMspr_ins_period() != Integer.parseInt(masaPertanggungan.toString())) {
+									result = false;
+								}
+							}
 						}
 						
-						if(rider.getMspr_ins_period() != Integer.parseInt(masaPertanggungan.toString())) {
-							result = false;
-						}
+//						if(rider.getMspr_ins_period() != Integer.parseInt(masaPertanggungan.toString())) {
+//							result = false;
+//						}
 					} else {
 						result = false;
 					}
@@ -2766,13 +3064,17 @@ public class PF {
 				LstProdsetCalc lstProdsetCalc = services.selectProdSetCalc(lsbs_id, lsdbs_number, lku_id);
 				
 				if(lstProdsetCalc != null) {
-					BigDecimal minTopUp = lstProdsetCalc.getMin_topup();
-					
-					if (profile.getMu_jlh_premi().compareTo(minTopUp) < 0) {
-			            result = false;
-			        } else {
-			            result = true;
-			        } 
+					if(lstProdsetCalc.getMin_topup() != null) {
+						BigDecimal minTopUp = lstProdsetCalc.getMin_topup();
+						
+						if (profile.getMu_jlh_premi().compareTo(minTopUp) < 0) {
+				            result = false;
+				        } else {
+				            result = true;
+				        }
+					} else {
+						result = true;
+					}
 				} else {
 					result = false;
 				}
@@ -2808,10 +3110,12 @@ public class PF {
 					LstProdset lstProdset = services.selectFlagGender(lsbs_id, lsdbs_number);
 					
 					if(lstProdset != null) {
-						//Validasi gender jika flag gender state hanya boleh salah satu gender
-						if(lstProdset.getFlag_gender() != 2) {
-							if(rider.getMspe_sex() != lstProdset.getFlag_gender()) {
-								result = false;
+						if(lstProdset.getFlag_gender() != null) {
+							//Validasi gender jika flag gender state hanya boleh salah satu gender
+							if(lstProdset.getFlag_gender() != 2) {
+								if(rider.getMspe_sex() != lstProdset.getFlag_gender()) {
+									result = false;
+								}
 							}
 						}
 					} else {
@@ -2847,46 +3151,47 @@ public class PF {
 					LstValidationAgeParticipant lstValidationAgeParticipant = services.selectLstValidationAgeParticipant(lsbs_id, lsdbs_number, lsre_id);
 					
 					if(lstValidationAgeParticipant != null) {
-						Integer validate;
-						Calendar calBegDate = Calendar.getInstance();
-				        Calendar calDateBirth = Calendar.getInstance();
-				        calBegDate.setTime(rider.getMspo_beg_date());
-				        calDateBirth.setTime(rider.getTgl_lahir());
-				        Integer usia = calBegDate.get(Calendar.YEAR) - calDateBirth.get(Calendar.YEAR);
-				        
-				        //PEMBULATAN USIA
-				        if (calBegDate.get(Calendar.MONTH) - calDateBirth.get(Calendar.MONTH) >= 6) {
-				            usia++;
-				        }
-				        
-				        Integer usiaParticipant = usia;
-				        
-				        if (usiaParticipant > 0) {
-				            if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_from()) < 0) {
-				                result = false;
-				            }
-				            else if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_to()) > 0) {
-				            	result = false;
-				            }
-				        } else if (lstValidationAgeParticipant.getInsured_age_from_flag() == 1) {
-				            validate = calBegDate.get(Calendar.MONTH) - calDateBirth.get(Calendar.MONTH);
-				            if (validate.compareTo(lstValidationAgeParticipant.getInsured_age_from()) < 0) {
-				                result = false;
-				            }
-				            else if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_to()) > 0) {
-				                result = false;
-				            }
-				        } else {
-				            validate = calBegDate.get(Calendar.DATE) - calDateBirth.get(Calendar.DATE);
-				            if (validate.compareTo(lstValidationAgeParticipant.getInsured_age_from()) < 0) {
-				                result = false;
-				            }
-				            else if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_to()) > 0) {
-				                result = false;
-				            }
-				        }
-					} else {
-						result = false;
+						if(lstValidationAgeParticipant.getInsured_age_from_flag() != null && lstValidationAgeParticipant.getInsured_age_from() != null 
+								&& lstValidationAgeParticipant.getInsured_age_to() != null) {
+							Integer validate;
+							Calendar calBegDate = Calendar.getInstance();
+					        Calendar calDateBirth = Calendar.getInstance();
+					        calBegDate.setTime(rider.getMspo_beg_date());
+					        calDateBirth.setTime(rider.getTgl_lahir());
+					        Integer usia = calBegDate.get(Calendar.YEAR) - calDateBirth.get(Calendar.YEAR);
+					        
+					        //PEMBULATAN USIA
+					        if (calBegDate.get(Calendar.MONTH) - calDateBirth.get(Calendar.MONTH) >= 6) {
+					            usia++;
+					        }
+					        
+					        Integer usiaParticipant = usia;
+					        
+					        if (usiaParticipant > 0) {
+					            if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_from()) < 0) {
+					                result = false;
+					            }
+					            else if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_to()) > 0) {
+					            	result = false;
+					            }
+					        } else if (lstValidationAgeParticipant.getInsured_age_from_flag() == 1) {
+					            validate = calBegDate.get(Calendar.MONTH) - calDateBirth.get(Calendar.MONTH);
+					            if (validate.compareTo(lstValidationAgeParticipant.getInsured_age_from()) < 0) {
+					                result = false;
+					            }
+					            else if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_to()) > 0) {
+					                result = false;
+					            }
+					        } else {
+					            validate = calBegDate.get(Calendar.DATE) - calDateBirth.get(Calendar.DATE);
+					            if (validate.compareTo(lstValidationAgeParticipant.getInsured_age_from()) < 0) {
+					                result = false;
+					            }
+					            else if (usiaParticipant.compareTo(lstValidationAgeParticipant.getInsured_age_to()) > 0) {
+					                result = false;
+					            }
+					        }
+						}
 					}
 				}
 			}

@@ -42,9 +42,11 @@ import com.app.model.LstValidationAgeParticipant;
 import com.app.model.MedicalTableProfile;
 import com.app.model.MstPeserta;
 import com.app.model.MstProductInsured;
+import com.app.model.MstRekeningCustomer;
 import com.app.model.MstSpicaConditionHistory;
 import com.app.model.MstSpicaFieldHistory;
 import com.app.model.MstSpicaFormHistory;
+import com.app.model.MstSpicaProcessHistory;
 import com.app.model.MstSpicaRuleHistory;
 import com.app.model.MstSpicaVariableHistory;
 import com.app.model.MstWfDocument;
@@ -57,6 +59,8 @@ import com.app.model.PremiUlink;
 import com.app.model.PremiumValidationProfile;
 import com.app.model.Product;
 import com.app.model.ProductAgeValidationProfile;
+import com.app.model.RekeningBeneficiary;
+import com.app.model.RekeningPayor;
 import com.app.model.SumInsuredValidationProfile;
 import com.app.model.TopUpSingleValidationProfile;
 import com.app.utils.CommonUtils;
@@ -395,6 +399,22 @@ public class SpicaServices {
 		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
 		
 		dao.insertMstTransHistory(map);
+	}
+	
+	public void insertSpicaProcessHistory(Integer no_temp, String reg_spaj, String app_name,
+			String process_name, String description, String error_message, Integer process_number) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		MstSpicaProcessHistory mstSpicaProcessHistory = new MstSpicaProcessHistory();
+		mstSpicaProcessHistory.setNo_temp(no_temp);
+		mstSpicaProcessHistory.setReg_spaj(reg_spaj);
+		mstSpicaProcessHistory.setApp_name(app_name);
+		mstSpicaProcessHistory.setProcess_name(process_name);
+		mstSpicaProcessHistory.setDescription(description);
+		mstSpicaProcessHistory.setError_message(error_message);
+		mstSpicaProcessHistory.setProcess_number(process_number);
+		
+		dao.insertSpicaProcessHistory(mstSpicaProcessHistory);
 	}
 	
 	//Select
@@ -1377,7 +1397,24 @@ public class SpicaServices {
 		
 		return dao.selectPremiPokok(reg_spaj);
 	}
-
+	
+	public RekeningBeneficiary selectRekeningBeneficiary(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectRekeningBeneficiary(reg_spaj);
+	}
+	
+	public RekeningPayor selectRekeningPayor(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectRekeningPayor(reg_spaj);
+	}
+	
+	public MstRekeningCustomer selectMstRekeningCustomer(String mar_acc_no) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectMstRekeningCustomer(mar_acc_no);
+	}
 	
 	//Update
 	
@@ -1476,8 +1513,7 @@ public class SpicaServices {
 		dao.updateMstPolicyLspdId(param);
 	}
 
-	public void updateMstInsured(String reg_spaj, Integer lspd_id, Integer lssa_id, Integer flag_speedy,
-			Integer flag_qa) {
+	public void updateMstInsured(String reg_spaj, Integer lspd_id, Integer lssa_id, Integer flag_speedy) {
 		SpicaDAO dao = sqlSession.getMapper(SpicaDAO.class);
 		
 		Map param = new HashMap();
@@ -1485,7 +1521,7 @@ public class SpicaServices {
 		param.put("lspd_id", lspd_id);
 		param.put("lssa_id", lssa_id);
 		param.put("flag_speedy", flag_speedy);
-		param.put("flag_qa", flag_qa);
+		//param.put("flag_qa", flag_qa);
 		
 		dao.updateMstInsured(param);
 	}

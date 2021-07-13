@@ -29,9 +29,11 @@ import com.app.model.LstValidationAgeParticipant;
 import com.app.model.MedicalTableProfile;
 import com.app.model.MstPeserta;
 import com.app.model.MstProductInsured;
+import com.app.model.MstRekeningCustomer;
 import com.app.model.MstSpicaConditionHistory;
 import com.app.model.MstSpicaFieldHistory;
 import com.app.model.MstSpicaFormHistory;
+import com.app.model.MstSpicaProcessHistory;
 import com.app.model.MstSpicaRuleHistory;
 import com.app.model.MstSpicaVariableHistory;
 import com.app.model.MstWfDocument;
@@ -44,6 +46,8 @@ import com.app.model.PremiUlink;
 import com.app.model.PremiumValidationProfile;
 import com.app.model.Product;
 import com.app.model.ProductAgeValidationProfile;
+import com.app.model.RekeningBeneficiary;
+import com.app.model.RekeningPayor;
 import com.app.model.SumInsuredValidationProfile;
 import com.app.model.TopUpSingleValidationProfile;
 import com.app.utils.SqlBuilderQuery;
@@ -91,6 +95,8 @@ public interface SpicaDAO {
 	public void insertMstTagPayment(Map insTagPayment);
 	
 	public void insertMstTransHistory(Map map);
+	
+	public void insertSpicaProcessHistory(MstSpicaProcessHistory mstSpicaProcessHistory);
 	
 	//Select
 	
@@ -350,6 +356,12 @@ public interface SpicaDAO {
 	public BigDecimal selectTopUpMuKe2(String reg_spaj);
 	
 	public PremiumValidationProfile selectPremiPokok(String reg_spaj);
+	
+	public RekeningBeneficiary selectRekeningBeneficiary(String reg_spaj);
+	
+	public RekeningPayor selectRekeningPayor(String reg_spaj);
+	
+	public MstRekeningCustomer selectMstRekeningCustomer(String mar_acc_no);
 	
 	//Update
 

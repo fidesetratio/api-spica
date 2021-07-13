@@ -19,6 +19,8 @@ public class PremiumValidationProfile implements Serializable {
 	private Integer lscb_kali;
 	private BigDecimal mu_jlh_premi;
 	private BigDecimal lscb_kali_old;
+	private BigDecimal lscb_kali_factor_tiga;
+	private BigDecimal lscb_kali_factor_empat;
 	
 	public Integer getMste_age() {
 		return mste_age;
@@ -73,5 +75,17 @@ public class PremiumValidationProfile implements Serializable {
 	}
 	public void setLscb_kali_old(BigDecimal lscb_kali_old) {
 		this.lscb_kali_old = lscb_kali_old;
+	}
+	public BigDecimal getLscb_kali_factor_tiga() {
+		return lscb_kali_factor_tiga;
+	}
+	public void setLscb_kali_factor_tiga(BigDecimal lscb_kali_factor_tiga) {
+		this.lscb_kali_factor_tiga = lscb_kali_factor_tiga;
+	}
+	public BigDecimal getLscb_kali_factor_empat() {
+		return lscb_kali_factor_empat;
+	}
+	public void setLscb_kali_factor_empat(BigDecimal lscb_kali_factor_empat) {
+		this.lscb_kali_factor_empat = lscb_kali_factor_empat;
 	}
 }
