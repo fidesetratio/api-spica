@@ -62,6 +62,7 @@ public class SpicaKafkaController {
 		String spica_result = null;
 		String error_message = null;
 		Integer process_number = null;
+		Integer no_temp = null;
 		
 		HashMap<String, Object> fieldAndVariable = new HashMap<String, Object>();
 		HashMap<String, Object> field = new HashMap<String, Object>();
@@ -72,7 +73,9 @@ public class SpicaKafkaController {
 		JSONObject spicaKafka = new JSONObject(message);
 		
 		Integer form_id = spicaKafka.getInt("form_id");
-		Integer no_temp = spicaKafka.getInt("no_temp");
+		if(spicaKafka.get("no_temp") != null || spicaKafka.get("no_temp") != "") {
+			no_temp = spicaKafka.getInt("no_temp");
+		}
 		String app_name = spicaKafka.getString("app_name");
 		String process_name = "SPICA";
 		Object primary_attribute = spicaKafka.get("reg_spaj");
