@@ -2000,34 +2000,30 @@ public class PF {
 		
 		Boolean result = true;
 		
-		if(nama != null && nama != "" && no_hp != null && no_hp != "" && no_account != null && no_account != "" && email != null && email != "" && fuzzy_threshold != null) {
-			SpicaServices services = new SpicaServices();
+		SpicaServices services = new SpicaServices();
 			
-			//SELECT APAKAH ADA DATA CUSTOMER LAIN BERDASARKAN NO HP, NO REK & EMAIL PP
-			ArrayList<HashMap<String,String>> data_customer = services.selectDataCustomer(no_hp, no_account, email); 
+		//SELECT APAKAH ADA DATA CUSTOMER LAIN BERDASARKAN NO HP, NO REK & EMAIL PP
+		ArrayList<HashMap<String,String>> data_customer = services.selectDataCustomer(no_hp, no_account, email); 
 			
-			if(!data_customer.isEmpty()) {
-				for(HashMap<String,String> result_data : data_customer) {
-					Integer result_fuzzy = FuzzySearch.tokenSetRatio(nama, result_data.get("NM_PP").toString());
+		if(!data_customer.isEmpty()) {
+			for(HashMap<String,String> result_data : data_customer) {
+				Integer result_fuzzy = FuzzySearch.tokenSetRatio(nama, result_data.get("NM_PP").toString());
 					
-					//BANDINGKAN NAMA DENGAN FUZZY, JIKA BERBEDA MAKA TIDAK LOLOS VALIDASI
-					if(result_fuzzy < fuzzy_threshold) {
-						result = false;
-						break;
-					}
-				}
-			}
-			
-			//CHECK APAKAH DATA PP SAMA DENGAN LIST DATA AGENT
-			if(result == true) {
-				ArrayList<HashMap<String,String>> data_agent = services.selectDataAgent(no_hp, no_account, email);
-				
-				if(!data_agent.isEmpty()) {
+				//BANDINGKAN NAMA DENGAN FUZZY, JIKA BERBEDA MAKA TIDAK LOLOS VALIDASI
+				if(result_fuzzy < fuzzy_threshold) {
 					result = false;
+					break;
 				}
 			}
-		} else {
-			result = false;
+		}
+			
+		//CHECK APAKAH DATA PP SAMA DENGAN LIST DATA AGENT
+		if(result == true) {
+			ArrayList<HashMap<String,String>> data_agent = services.selectDataAgent(no_hp, no_account, email);
+				
+			if(!data_agent.isEmpty()) {
+				result = false;
+			}
 		}
 		
 		return result;
