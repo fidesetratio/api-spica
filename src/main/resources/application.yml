@@ -62,10 +62,9 @@ spring:
    console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}]){yellow} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
   datasource:
     driverClassName: oracle.jdbc.driver.OracleDriver
-    #url: jdbc:oracle:thin:@128.21.30.20:1522:ajsdb #ajsmuat
-    url: jdbc:oracle:thin:@128.21.23.31:1521:ajsdb #ajsdbtest
-    username: EKA
-    password: eka
+    url: jdbc:oracle:thin:@128.21.22.31:1530:ajsdb
+    username: dev
+    password: linkdev
   urlDukcapil: http://128.21.33.27:8989/dukcapiltest/nikdata/nik
   tokenDukcapil: Bearer 32b971fa-2334-4a49-b2cf-533ca7ea8588
   kafka:
