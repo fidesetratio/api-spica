@@ -34,7 +34,7 @@ spring:
     url: jdbc:oracle:thin:@128.21.23.31:1521:ajsdb #ajsdbtest
     username: EKA
     password: eka
-  urlDukcapil: http://128.21.33.27:8989/dukcapiltest/nikdata/nik
+  urlDukcapil: http://128.21.33.27:8999/dukcapil/api/nikdata
   tokenDukcapil: Bearer 32b971fa-2334-4a49-b2cf-533ca7ea8588
   kafka:
     bootstrapAddress: 128.21.24.62:9092
@@ -65,7 +65,7 @@ spring:
     url: jdbc:oracle:thin:@128.21.22.31:1530:ajsdb
     username: dev
     password: linkdev
-  urlDukcapil: http://128.21.33.27:8989/dukcapiltest/nikdata/nik
+  urlDukcapil: http://128.21.33.27:8999/dukcapil/api/nikdata
   tokenDukcapil: Bearer 32b971fa-2334-4a49-b2cf-533ca7ea8588
   kafka:
     bootstrapAddress: 128.21.24.62:9092
