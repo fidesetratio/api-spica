@@ -1559,5 +1559,11 @@
 			FROM EKA.MST_REKENING_CUSTOMER
 			WHERE MRC_NO_ACC = #{value, jdbcType=VARCHAR}
 	</select>
+	
+	<select id="selectRegSpajMstBilling" parameterType="string" resultType="string">	 		
+		SELECT REG_SPAJ
+			FROM EKA.MST_BILLING
+			WHERE REG_SPAJ = #{value, jdbcType=VARCHAR}
+	</select>
 
 </mapper>

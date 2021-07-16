@@ -1416,6 +1416,12 @@ public class SpicaServices {
 		return dao.selectMstRekeningCustomer(mar_acc_no);
 	}
 	
+	public String selectRegSpajMstBilling(String reg_spaj) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		return dao.selectRegSpajMstBilling(reg_spaj);
+	}
+	
 	//Update
 	
 	public void updateForm(Integer form_id, String form_type, String form_description, String form_source, String form_primary_attribute,

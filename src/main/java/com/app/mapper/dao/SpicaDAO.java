@@ -363,6 +363,8 @@ public interface SpicaDAO {
 	
 	public MstRekeningCustomer selectMstRekeningCustomer(String mar_acc_no);
 	
+	public String selectRegSpajMstBilling(String reg_spaj);
+	
 	//Update
 
 	public void updateForm(LstSpicaForm lstSpicaForm);
