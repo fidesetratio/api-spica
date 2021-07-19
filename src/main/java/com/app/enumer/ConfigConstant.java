@@ -9,7 +9,7 @@ public enum ConfigConstant {
 //	usernamePassword("186703ca-141a-496b-b43c-396465f99324:ed14bf2e-e6ba-4ffb-89f6-6124392b8045");
 	
 	//PRODUCTION
-	accountNumber_Interbank("0316031099"),
+	accountNumber_Interbank("0904388019"),
 	secretKey("8995c547-684b-4cf7-9dff-702170f00d8f"),
 	xApiKey("9212c17f-4b08-4324-9e31-bebe5273a28b"),
 	clientId("MSIG"),
