@@ -417,6 +417,17 @@ public class SpicaServices {
 		dao.insertSpicaProcessHistory(mstSpicaProcessHistory);
 	}
 	
+	public void insertMstRekeningCustomer(String lsbp_id, String mar_acc_no, String name_result) {
+		SpicaDAO dao = sqlSession1.getMapper(SpicaDAO.class);
+		
+		Map param = new HashMap();
+		param.put("lsbp_id", lsbp_id);
+		param.put("mrc_no_acc", mar_acc_no);
+		param.put("mrc_atas_nama", name_result);
+		
+		dao.insertMstRekeningCustomer(param);
+	}
+	
 	//Select
 	
 	public LstSpicaForm selectForm(Integer form_id) {

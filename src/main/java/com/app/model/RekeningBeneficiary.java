@@ -11,6 +11,7 @@ public class RekeningBeneficiary implements Serializable {
 	
 	private String mrc_nama;
 	private String mrc_no_ac;
+	private String lsbp_id;
 	private String kode_bank;
 	
 	public String getMrc_nama() {
@@ -24,6 +25,12 @@ public class RekeningBeneficiary implements Serializable {
 	}
 	public void setMrc_no_ac(String mrc_no_ac) {
 		this.mrc_no_ac = mrc_no_ac;
+	}
+	public String getLsbp_id() {
+		return lsbp_id;
+	}
+	public void setLsbp_id(String lsbp_id) {
+		this.lsbp_id = lsbp_id;
 	}
 	public String getKode_bank() {
 		return kode_bank;

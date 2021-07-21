@@ -98,6 +98,8 @@ public interface SpicaDAO {
 	
 	public void insertSpicaProcessHistory(MstSpicaProcessHistory mstSpicaProcessHistory);
 	
+	public void insertMstRekeningCustomer(Map param);
+	
 	//Select
 	
 	public LstSpicaForm selectForm(LstSpicaForm lstSpicaForm);

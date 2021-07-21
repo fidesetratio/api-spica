@@ -1743,6 +1743,10 @@ public class PF {
 						    	result = false;
 						    	logger.info("ACCOUNT NAME NOT MATCH");
 						    }
+						    
+						    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+						    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+						    
 						} else {
 							result = false;
 							logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
@@ -1756,13 +1760,17 @@ public class PF {
 							 
 							 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
 								
-								//check name fuzzy
-						    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+							//check name fuzzy
+						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
 						    	
-						    	if(fuzzyNameResult < thresholdFuzzy) {
-						    		result = false;
-						    		logger.info("ACCOUNT NAME NOT MATCH");
-						    	}
+						    if(fuzzyNameResult < thresholdFuzzy) {
+						    	result = false;
+						    	logger.info("ACCOUNT NAME NOT MATCH");
+						    }
+						    	
+						    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+							services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+							
 						 } else {
 							 result = false;
 							 logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
@@ -1806,6 +1814,9 @@ public class PF {
 							    	result = false;
 							    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
 							    }
+							    
+							    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+							    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
 							} else {
 								result = false;
 								logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
@@ -1819,13 +1830,17 @@ public class PF {
 								 
 								 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
 									
-									//check name fuzzy
-							    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+								//check name fuzzy
+							    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
 							    	
-							    	if(fuzzyNameResult < thresholdFuzzy) {
-							    		result = false;
-							    		logger.info("PAYOR ACCOUNT NAME NOT MATCH");
-							    	}
+							    if(fuzzyNameResult < thresholdFuzzy) {
+							    	result = false;
+							    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+							    }
+							    
+							    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+							    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+							    
 							 } else {
 								 result = false;
 								 logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
@@ -1868,6 +1883,10 @@ public class PF {
 						    	result = false;
 						    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
 						    }
+						    
+						    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+						    services.insertMstRekeningCustomer(rekeningBenef.getLsbp_id(), rekeningBenef.getMrc_no_ac(), name_result);
+						    
 						} else {
 							result = false;
 							logger.info("ERROR HIT API BNI OR BENEFICIARY ACCOUNT NUMBER NOT FOUND");
@@ -1881,13 +1900,17 @@ public class PF {
 							 
 							 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
 								
-								//check name fuzzy
-						    	Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), name_result);
+							//check name fuzzy
+						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), name_result);
 						    	
-						    	if(fuzzyNameResult < thresholdFuzzy) {
-						    		result = false;
-						    		logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
-						    	}
+						    if(fuzzyNameResult < thresholdFuzzy) {
+						    	result = false;
+						    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
+						    }
+						    
+						    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+						    services.insertMstRekeningCustomer(rekeningBenef.getLsbp_id(), rekeningBenef.getMrc_no_ac(), name_result);
+						    
 						 } else {
 							 result = false;
 							 logger.info("ERROR HIT API BNI OR BENEFICIARY ACCOUNT NUMBER NOT FOUND");

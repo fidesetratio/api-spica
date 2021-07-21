@@ -11,8 +11,10 @@ public class RekeningPayor implements Serializable {
 	
 	private String mar_holder;
 	private String mar_acc_no;
+	private String lsbp_id;
 	private String kode_bank;
 	private Integer mste_flag_cc;
+	
 	public String getMar_holder() {
 		return mar_holder;
 	}
@@ -24,6 +26,12 @@ public class RekeningPayor implements Serializable {
 	}
 	public void setMar_acc_no(String mar_acc_no) {
 		this.mar_acc_no = mar_acc_no;
+	}
+	public String getLsbp_id() {
+		return lsbp_id;
+	}
+	public void setLsbp_id(String lsbp_id) {
+		this.lsbp_id = lsbp_id;
 	}
 	public String getKode_bank() {
 		return kode_bank;

@@ -394,5 +394,19 @@
 		)
 	</insert>
 	
+	<insert id="insertMstRekeningCustomer" parameterType="java.util.HashMap">
+	INSERT INTO EKA.MST_REKENING_CUSTOMER
+		(LSBP_ID, MRC_NO_ACC, MRC_ATAS_NAMA, TGL_UPDATE, MRC_VERIFIKASI, MRC_USER_INPUT)
+		VALUES
+		(
+		#{lsbp_id, jdbcType=VARCHAR},
+		#{mrc_no_acc, jdbcType=VARCHAR},
+		#{mrc_atas_nama, jdbcType=VARCHAR},
+		SYSDATE,
+		2,
+		0
+		)
+	</insert>
+	
 	
 </mapper>

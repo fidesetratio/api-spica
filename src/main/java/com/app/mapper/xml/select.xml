@@ -1539,15 +1539,15 @@
 	</select>
 	
 	<select id="selectRekeningBeneficiary" parameterType="string" resultType="com.app.model.RekeningBeneficiary">	 		
-	 	SELECT A.MRC_NAMA, A.MRC_NO_AC, B.KODE_BANK
+	 	SELECT A.MRC_NAMA, A.MRC_NO_AC, B.LSBP_ID, B.KODE_BANK
 			FROM EKA.MST_REK_CLIENT A
 			INNER JOIN EKA.LST_BANK_PUSAT B ON B.LSBP_ID = A.LSBP_ID
 			WHERE A.REG_SPAJ = #{value, jdbcType=VARCHAR} 
 	</select>
 	
 	<select id="selectRekeningPayor" parameterType="string" resultType="com.app.model.RekeningPayor">	 		
-	 	SELECT A.MAR_HOLDER, A.MAR_ACC_NO, C.KODE_BANK, D.MSTE_FLAG_CC
-			FROM EKA.MST_ACCOUNT_RECUR A
+	 	SELECT A.MAR_HOLDER, A.MAR_ACC_NO, C.LSBP_ID, C.KODE_BANK, D.MSTE_FLAG_CC
+			FROM EKA.MST_ACCOUNT_RECUR A 
 			INNER JOIN EKA.LST_BANK B ON B.LBN_ID = A.LBN_ID
 			INNER JOIN EKA.LST_BANK_PUSAT C ON C.LSBP_ID = B.LSBP_ID
 			INNER JOIN EKA.MST_INSURED D ON D.REG_SPAJ = A.REG_SPAJ
