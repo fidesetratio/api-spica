@@ -137,7 +137,7 @@
 	</select>
 	
 	<select id="selectAllRegSpajInforceByIdSimultan" parameterType="string" resultType="string">	 		
-	 	SELECT A.REG_SPAJ
+	 	SELECT DISTINCT(A.REG_SPAJ)
 			FROM EKA.MST_SIMULTANEOUS A
 			LEFT JOIN EKA.MST_POLICY B ON B.REG_SPAJ = A.REG_SPAJ
 			WHERE A.ID_SIMULTAN = (SELECT DISTINCT(ID_SIMULTAN) FROM
