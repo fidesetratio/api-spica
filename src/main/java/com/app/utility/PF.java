@@ -1706,92 +1706,24 @@ public class PF {
 			RekeningBeneficiary rekeningBenef = services.selectRekeningBeneficiary(reg_spaj);
 			RekeningPayor rekeningPayor = services.selectRekeningPayor(reg_spaj);
 			
-			//CHECK JIKA NO REK BENEFICIARY & PAYOR SAMA, JIKA SAMA MAKA CEK SEKALI SAJA
-			if(rekeningPayor.getMar_acc_no().equals(rekeningBenef.getMrc_no_ac())) {
-				
-				//CHECK DULU KE TABLE TAMPUNGAN
-				MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningPayor.getMar_acc_no());
-				
-				//CHECK JIKA ADA DI TABLE TAMPUNGAN
-				if(mstRekeningCustomer != null) {
-					
-					//check name fuzzy
-				    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), mstRekeningCustomer.getMrc_atas_nama());
-					
-					if(fuzzyNameResult < thresholdFuzzy) {
-				    	result = false;
-				    	logger.info("ACCOUNT NAME NOT MATCH");
-				    }
-				} else {
-					//CHECK IF BANK CODE IS BNI
-					if(rekeningPayor.getKode_bank().equals("009") || rekeningPayor.getKode_bank().equals("427")) {
-						
-						ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(rekeningPayor.getMar_acc_no());
-						
-						if(inhouseInquiryResult.getStatusCodeValue() == 200) {
-						
-							JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
-							
-							String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
-								
-							String name_result = jsonResult.getJSONObject("result").getString("customerName");
-								
-							//check name fuzzy
-						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
-						    	
-						    if(fuzzyNameResult < thresholdFuzzy) {
-						    	result = false;
-						    	logger.info("ACCOUNT NAME NOT MATCH");
-						    }
-						    
-						    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
-						    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
-						    
-						} else {
-							result = false;
-							logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
-						}
-					 } else {
-						 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningPayor.getMar_acc_no(), rekeningPayor.getKode_bank());
-						 
-						 if(interbankInquiryResult.getStatusCodeValue() == 200) {
-							 
-							 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
-							 
-							 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
-								
-							//check name fuzzy
-						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
-						    	
-						    if(fuzzyNameResult < thresholdFuzzy) {
-						    	result = false;
-						    	logger.info("ACCOUNT NAME NOT MATCH");
-						    }
-						    	
-						    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
-							services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
-							
-						 } else {
-							 result = false;
-							 logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
-						 }	
-					 }
-				}
-			} else {
-				//CHECK REKENING PAYOR
-				//CHECK IF PAYOR USING CC FOR PAYMENT
-				if(rekeningPayor.getMste_flag_cc() != 1) {
+			//JIKA REKENING PAYOR TIDAK NULL MAKA CEK KEDUANYA
+			if(rekeningPayor != null) {
+			
+				//CHECK JIKA NO REK BENEFICIARY & PAYOR SAMA, JIKA SAMA MAKA CEK SEKALI SAJA
+				if(rekeningPayor.getMar_acc_no().equals(rekeningBenef.getMrc_no_ac())) {
 					
 					//CHECK DULU KE TABLE TAMPUNGAN
 					MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningPayor.getMar_acc_no());
 					
+					//CHECK JIKA ADA DI TABLE TAMPUNGAN
 					if(mstRekeningCustomer != null) {
+						
 						//check name fuzzy
 					    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), mstRekeningCustomer.getMrc_atas_nama());
-					    	
-					    if(fuzzyNameResult < thresholdFuzzy) {
+						
+						if(fuzzyNameResult < thresholdFuzzy) {
 					    	result = false;
-					    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+					    	logger.info("ACCOUNT NAME NOT MATCH");
 					    }
 					} else {
 						//CHECK IF BANK CODE IS BNI
@@ -1812,14 +1744,15 @@ public class PF {
 							    	
 							    if(fuzzyNameResult < thresholdFuzzy) {
 							    	result = false;
-							    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+							    	logger.info("ACCOUNT NAME NOT MATCH");
 							    }
 							    
 							    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
 							    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+							    
 							} else {
 								result = false;
-								logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
+								logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
 							}
 						 } else {
 							 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningPayor.getMar_acc_no(), rekeningPayor.getKode_bank());
@@ -1835,21 +1768,161 @@ public class PF {
 							    	
 							    if(fuzzyNameResult < thresholdFuzzy) {
 							    	result = false;
-							    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+							    	logger.info("ACCOUNT NAME NOT MATCH");
+							    }
+							    	
+							    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+								services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+								
+							 } else {
+								 result = false;
+								 logger.info("ERROR HIT API BNI OR ACCOUNT NUMBER NOT FOUND");
+							 }	
+						 }
+					}
+				} else {
+					//CHECK REKENING PAYOR
+					//CHECK IF PAYOR USING CC FOR PAYMENT
+					if(rekeningPayor.getMste_flag_cc() != 1) {
+						
+						//CHECK DULU KE TABLE TAMPUNGAN
+						MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningPayor.getMar_acc_no());
+						
+						if(mstRekeningCustomer != null) {
+							//check name fuzzy
+						    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), mstRekeningCustomer.getMrc_atas_nama());
+						    	
+						    if(fuzzyNameResult < thresholdFuzzy) {
+						    	result = false;
+						    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+						    }
+						} else {
+							//CHECK IF BANK CODE IS BNI
+							if(rekeningPayor.getKode_bank().equals("009") || rekeningPayor.getKode_bank().equals("427")) {
+								
+								ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(rekeningPayor.getMar_acc_no());
+								
+								if(inhouseInquiryResult.getStatusCodeValue() == 200) {
+								
+									JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
+									
+									String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
+										
+									String name_result = jsonResult.getJSONObject("result").getString("customerName");
+										
+									//check name fuzzy
+								    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+								    	
+								    if(fuzzyNameResult < thresholdFuzzy) {
+								    	result = false;
+								    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+								    }
+								    
+								    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+								    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+								} else {
+									result = false;
+									logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
+								}
+							 } else {
+								 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningPayor.getMar_acc_no(), rekeningPayor.getKode_bank());
+								 
+								 if(interbankInquiryResult.getStatusCodeValue() == 200) {
+									 
+									 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
+									 
+									 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
+										
+									//check name fuzzy
+								    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningPayor.getMar_holder(), name_result);
+								    	
+								    if(fuzzyNameResult < thresholdFuzzy) {
+								    	result = false;
+								    	logger.info("PAYOR ACCOUNT NAME NOT MATCH");
+								    }
+								    
+								    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+								    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+								    
+								 } else {
+									 result = false;
+									 logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
+								 }	
+							 }
+						}
+					}
+					
+					//CHECK REKENING BENEFICIARY
+					
+					//CHECK DULU KE TABLE TAMPUNGAN
+					MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningBenef.getMrc_nama());
+					
+					if(mstRekeningCustomer != null) {
+						//check name fuzzy
+					    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), mstRekeningCustomer.getMrc_atas_nama());
+					    	
+					    if(fuzzyNameResult < thresholdFuzzy) {
+					    	result = false;
+					    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
+					    }
+					} else {
+						//CHECK IF BANK CODE IS BNI
+						if(rekeningBenef.getKode_bank().equals("009") || rekeningBenef.getKode_bank().equals("427")) {
+							
+							ResponseEntity<Object> inhouseInquiryResult = GetInhouseInquiry(rekeningBenef.getMrc_no_ac());
+							
+							if(inhouseInquiryResult.getStatusCodeValue() == 200) {
+							
+								JSONObject jsonResult = new JSONObject(inhouseInquiryResult.getBody());
+								
+								String account_status = jsonResult.getJSONObject("result").getString("accountStatus");
+									
+								String name_result = jsonResult.getJSONObject("result").getString("customerName");
+									
+								//check name fuzzy
+							    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), name_result);
+							    	
+							    if(fuzzyNameResult < thresholdFuzzy) {
+							    	result = false;
+							    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
 							    }
 							    
 							    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
-							    services.insertMstRekeningCustomer(rekeningPayor.getLsbp_id(), rekeningPayor.getMar_acc_no(), name_result);
+							    services.insertMstRekeningCustomer(rekeningBenef.getLsbp_id(), rekeningBenef.getMrc_no_ac(), name_result);
+							    
+							} else {
+								result = false;
+								logger.info("ERROR HIT API BNI OR BENEFICIARY ACCOUNT NUMBER NOT FOUND");
+							}
+						 } else {
+							 ResponseEntity<Object> interbankInquiryResult = GetInterBankInquiry(rekeningBenef.getMrc_no_ac(), rekeningBenef.getKode_bank());
+							 
+							 if(interbankInquiryResult.getStatusCodeValue() == 200) {
+								 
+								 JSONObject jsonResult = new JSONObject(interbankInquiryResult.getBody());
+								 
+								 String name_result = jsonResult.getJSONObject("result").getString("destinationAccountName");
+									
+								//check name fuzzy
+							    Integer fuzzyNameResult = FuzzySearch.tokenSetRatio(rekeningBenef.getMrc_nama(), name_result);
+							    	
+							    if(fuzzyNameResult < thresholdFuzzy) {
+							    	result = false;
+							    	logger.info("BENEFICIARY ACCOUNT NAME NOT MATCH");
+							    }
+							    
+							    //INSERT HASIL HIT API BNI KE TABLE TAMPUNGAN
+							    services.insertMstRekeningCustomer(rekeningBenef.getLsbp_id(), rekeningBenef.getMrc_no_ac(), name_result);
 							    
 							 } else {
 								 result = false;
-								 logger.info("ERROR HIT API BNI OR PAYOR ACCOUNT NUMBER NOT FOUND");
+								 logger.info("ERROR HIT API BNI OR BENEFICIARY ACCOUNT NUMBER NOT FOUND");
 							 }	
 						 }
 					}
 				}
-				
-				//CHECK REKENING BENEFICIARY
+			} else {
+				//CHECK REKENING BENEFICIARY SAJA
 				
 				//CHECK DULU KE TABLE TAMPUNGAN
 				MstRekeningCustomer mstRekeningCustomer = services.selectMstRekeningCustomer(rekeningBenef.getMrc_nama());
