@@ -54,7 +54,7 @@ public class SpicaKafkaController {
 	
 	private static Logger logger = Logger.getLogger(SpicaKafkaController.class);
 	
-	@KafkaListener(topics = "SPICAUAT", groupId = "uatspica3")
+	@KafkaListener(topics = "SPICAUAT", groupId = "uatspica4")
 	public void EvaluateForm(String message) {
 		String field_name = null;
 		String select_command = null;
